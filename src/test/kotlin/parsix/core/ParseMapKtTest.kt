@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.fail
 
 
-internal class ParseMapTest {
+internal class ParseMapKtTest {
     data class TestData(val a: String, val b: Int?)
 
     @Test

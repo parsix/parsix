@@ -4,7 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
-internal class CommonParsersTest {
+internal class CommonParsersKtTest {
     enum class TestEnum(override val key: String) : ParsableEnum {
         Test1("one"),
         Test2("two")

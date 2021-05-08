@@ -8,18 +8,20 @@ object CommonErrors {
     const val uintInvalid = "unit.invalid"
     const val uintNegative = "unit.negative"
 
-    const val minValue = "num.min-value"
-    const val maxValue = "num.max-value"
-    const val betweenValue = "num.btwn-value"
+    const val minValue = "min-value"
+    const val maxValue = "max-value"
+    const val betweenValue = "btwn-value"
 
     const val enumInvalid = "enum.invalid"
 }
 
-fun parseNotNull(inp: Any?): Parsed<Any> =
-    if (inp == null)
-        OneError(CommonErrors.required)
-    else
-        Ok(inp)
+fun <I : Any, O> notNullable(parse: Parse<I, O>): Parse<I?, O> =
+    { inp ->
+        if (inp == null)
+            OneError(CommonErrors.required)
+        else
+            parse(inp)
+    }
 
 fun <I : Any, O : Any> nullable(default: O, parse: Parse<I, O>): Parse<I?, O> =
     { inp ->
