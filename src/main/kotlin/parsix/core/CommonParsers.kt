@@ -1,7 +1,7 @@
 package parsix.core
 
 object CommonErrors {
-    const val nullInvalid = "null.invalid"
+    const val required = "required"
     const val boolInvalid = "bool.invalid"
     const val stringInvalid = "string.invalid"
     const val intInvalid = "int.invalid"
@@ -17,9 +17,17 @@ object CommonErrors {
 
 fun parseNotNull(inp: Any?): Parsed<Any> =
     if (inp == null)
-        OneError(CommonErrors.nullInvalid)
+        OneError(CommonErrors.required)
     else
         Ok(inp)
+
+fun <I : Any, O : Any> nullable(default: O, parse: Parse<I, O>): Parse<I?, O> =
+    { inp ->
+        if (inp == null)
+            Ok(default)
+        else
+            parse(inp)
+    }
 
 fun <I : Any, O : Any> nullable(parse: Parse<I, O>): Parse<I?, O?> =
     { inp ->
@@ -40,7 +48,6 @@ inline fun <reified T> parseTyped(inp: Any, err: String): Parsed<T> =
         Ok(inp)
     else
         OneError(err)
-
 
 fun parseInt(inp: Any): Parsed<Int> =
     when (inp) {

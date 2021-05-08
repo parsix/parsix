@@ -21,7 +21,7 @@ fun <A : Any, B> ParseMap<(A) -> B>.required(key: String, parse: Parse<Any, A>):
 
 @JvmName("stringRequired")
 fun <A : Any, B> ParseMap<(A) -> B>.required(key: String, parse: Parse<String, A>): ParseMap<B> =
-    this.pluckKey(key, ::parseNotNull then ::parseString then parse)
+    this.required(key, ::parseString then parse)
 
 @JvmName("genericOptional")
 fun <A : Any, B> ParseMap<(A?) -> B>.optional(key: String, parse: Parse<Any, A>): ParseMap<B> =
@@ -29,4 +29,12 @@ fun <A : Any, B> ParseMap<(A?) -> B>.optional(key: String, parse: Parse<Any, A>)
 
 @JvmName("stringOptional")
 fun <A : Any, B> ParseMap<(A?) -> B>.optional(key: String, parse: Parse<String, A>): ParseMap<B> =
-    this.pluckKey(key, nullable(::parseString then parse))
+    this.optional(key, ::parseString then parse)
+
+@JvmName("genericDefault")
+fun <A : Any, B> ParseMap<(A) -> B>.optional(key: String, default: A, parse: Parse<Any, A>): ParseMap<B> =
+    this.pluckKey(key, nullable(default, parse))
+
+@JvmName("stringDefault")
+fun <A : Any, B> ParseMap<(A) -> B>.optional(key: String, default: A, parse: Parse<String, A>): ParseMap<B> =
+    this.optional(key, default, ::parseString then parse)
