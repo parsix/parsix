@@ -125,45 +125,22 @@ fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
 fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
     when {
         inp < min ->
-            OneError(CommonErrors.betweenValue, mapOf(
-                "min" to min,
-                "max" to max
-            ))
+            OneError(
+                CommonErrors.betweenValue, mapOf(
+                    "min" to min,
+                    "max" to max
+                )
+            )
 
         inp > max ->
-            OneError(CommonErrors.betweenValue, mapOf(
-                "min" to min,
-                "max" to max
-            ))
+            OneError(
+                CommonErrors.betweenValue, mapOf(
+                    "min" to min,
+                    "max" to max
+                )
+            )
 
         else ->
             Ok(inp)
     }
 }
-
-
-interface ParsableEnum {
-    val key: String
-}
-
-inline fun <reified T> parseEnum(): Parse<String, T>
-    where T : Enum<T>, T : ParsableEnum {
-    val map = buildMap<T>()
-
-    return { inp ->
-        map[inp]
-            ?.let(::Ok)
-            ?: OneError(
-                CommonErrors.enumInvalid,
-                ("expected" to map.keys)
-            )
-    }
-}
-
-inline fun <reified T> buildMap(): Map<String, T>
-    where T : Enum<T>, T : ParsableEnum =
-    mapOf(
-        *enumValues<T>()
-            .map { enum -> enum.key to enum }
-            .toTypedArray()
-    )

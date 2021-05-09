@@ -4,7 +4,10 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 
-fun <T : Any, A, B> parseObj(klass: KClass<T>, f: (A) -> B): Parse<T, (A) -> B> =
+fun <T : Any, A, B> parseObj(
+    _typeinference: KClass<T>,
+    f: (A) -> B
+): Parse<T, (A) -> B> =
     { _ -> Ok(f) }
 
 fun <I, P, O> parseProp(

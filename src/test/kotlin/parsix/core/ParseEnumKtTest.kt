@@ -4,14 +4,14 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
-internal class CommonParsersKtTest {
+internal class ParseEnumKtTest {
     enum class TestEnum(override val key: String) : ParsableEnum {
         Test1("one"),
         Test2("two")
     }
 
     @Test
-    fun `test parseEnum returns Test1 on one`() {
+    fun `parseEnum returns Test1 on one`() {
         assertEquals(
             Ok(TestEnum.Test1),
             parseEnum<TestEnum>()("one")
@@ -19,7 +19,7 @@ internal class CommonParsersKtTest {
     }
 
     @Test
-    fun `test parseEnum returns Test2 on two`() {
+    fun `parseEnum returns Test2 on two`() {
         assertEquals(
             Ok(TestEnum.Test2),
             parseEnum<TestEnum>()("two")
@@ -27,7 +27,7 @@ internal class CommonParsersKtTest {
     }
 
     @Test
-    fun `test parseEnum fails on unknown value`() {
+    fun `parseEnum fails on unknown value`() {
         assertEquals(
             OneError(
                 CommonErrors.enumInvalid,
