@@ -31,7 +31,7 @@ internal class ParseEnumKtTest {
         assertEquals(
             OneError(
                 CommonErrors.enumInvalid,
-                ("expected" to setOf("one", "two"))
+                EnumArgs(setOf("one", "two"))
             ),
             parseEnum<TestEnum>()("unknown")
         )

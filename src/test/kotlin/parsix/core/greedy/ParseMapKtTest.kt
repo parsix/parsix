@@ -1,5 +1,14 @@
-package parsix.core
+package parsix.core.greedy
 
+import parsix.core.CommonErrors
+import parsix.core.FieldError
+import parsix.core.ManyErrors
+import parsix.core.Ok
+import parsix.core.OneError
+import parsix.core.Parse
+import parsix.core.curry
+import parsix.core.parseInt
+import parsix.core.parseString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail

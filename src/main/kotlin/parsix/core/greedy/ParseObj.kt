@@ -1,8 +1,12 @@
-package parsix.core
+package parsix.core.greedy
 
+import parsix.core.Ok
+import parsix.core.Parse
+import parsix.core.notNullable
+import parsix.core.nullable
+import parsix.core.parseProp
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
-
 
 fun <T : Any, A, B> parseObj(
     _typeinference: KClass<T>,
@@ -10,20 +14,11 @@ fun <T : Any, A, B> parseObj(
 ): Parse<T, (A) -> B> =
     { _ -> Ok(f) }
 
-fun <I, P, O> parseProp(
-    prop: KProperty1<I, P>,
-    parse: Parse<P, O>
-): Parse<I, O> = { inp ->
-    parse(prop.get(inp)).mapError {
-        FieldError(prop.name, it)
-    }
-}
-
 fun <I, P, A, B> Parse<I, (A) -> B>.pluckProp(
     prop: KProperty1<I, P>,
     parse: Parse<P, A>
 ): Parse<I, B> =
-    this.pluck(parseProp(prop, parse))
+    this.greedyPluck(parseProp(prop, parse))
 
 fun <I, P : Any, A : Any, B> Parse<I, (A) -> B>.required(
     prop: KProperty1<I, P?>,

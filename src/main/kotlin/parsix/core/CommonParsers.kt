@@ -61,9 +61,9 @@ fun parseInt(inp: Any): Parsed<Int> =
         is Long ->
             when {
                 Int.MIN_VALUE > inp ->
-                    OneError(CommonErrors.minValue, ("min" to Int.MIN_VALUE))
+                    OneError(CommonErrors.minValue, MinArgs(Int.MIN_VALUE))
                 Int.MAX_VALUE < inp ->
-                    OneError(CommonErrors.maxValue, ("max" to Int.MAX_VALUE))
+                    OneError(CommonErrors.maxValue, MaxArgs(Int.MAX_VALUE))
                 else ->
                     Ok(inp.toInt())
             }
@@ -93,7 +93,7 @@ fun parseUInt(inp: Any): Parsed<UInt> =
                 inp < 0 ->
                     OneError(CommonErrors.uintNegative)
                 UInt.MAX_VALUE.toLong() < inp ->
-                    OneError(CommonErrors.maxValue, ("max" to UInt.MAX_VALUE))
+                    OneError(CommonErrors.maxValue, MaxArgs(UInt.MAX_VALUE))
                 else ->
                     Ok(inp.toUInt())
             }
@@ -108,36 +108,38 @@ fun parseUInt(inp: Any): Parsed<UInt> =
             OneError(CommonErrors.uintInvalid)
     }
 
+data class MinArgs<T : Comparable<T>>(val min: T)
+
 fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
     if (inp < min)
-        OneError(CommonErrors.minValue, mapOf("min" to min))
+        OneError(CommonErrors.minValue, MinArgs(min))
     else
         Ok(inp)
 }
 
+data class MaxArgs<T : Comparable<T>>(val max: T)
+
 fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
     if (inp > max)
-        OneError(CommonErrors.maxValue, mapOf("max" to max))
+        OneError(CommonErrors.maxValue, MaxArgs(max))
     else
         Ok(inp)
 }
+
+data class BetweenArgs<T : Comparable<T>>(val min: T, val max: T)
 
 fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
     when {
         inp < min ->
             OneError(
-                CommonErrors.betweenValue, mapOf(
-                    "min" to min,
-                    "max" to max
-                )
+                CommonErrors.betweenValue,
+                BetweenArgs(min, max)
             )
 
         inp > max ->
             OneError(
-                CommonErrors.betweenValue, mapOf(
-                    "min" to min,
-                    "max" to max
-                )
+                CommonErrors.betweenValue,
+                BetweenArgs(min, max)
             )
 
         else ->

@@ -22,9 +22,9 @@ sealed class ParseError : Parsed<Nothing>()
 
 data class OneError(
     val error: String,
-    val args: Map<String, Any> = emptyMap()
+    val args: Any
 ) : ParseError() {
-    constructor(error: String, arg: Pair<String, Any>) : this(error, mapOf(arg))
+    constructor(error: String) : this(error, Unit)
 }
 
 data class FieldError(val field: String, val error: ParseError) : ParseError()

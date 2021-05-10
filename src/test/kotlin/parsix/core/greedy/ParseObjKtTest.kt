@@ -1,6 +1,12 @@
-package parsix.core
+package parsix.core.greedy
 
-import org.junit.Test
+import parsix.core.FieldError
+import parsix.core.ManyErrors
+import parsix.core.Ok
+import parsix.core.OneError
+import parsix.core.Parse
+import parsix.core.curry
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal class ParseObjKtTest {
@@ -33,10 +39,12 @@ internal class ParseObjKtTest {
             { _ -> OneError("second") }
 
         assertEquals(
-            ManyErrors(setOf(
-                FieldError("a", OneError("first")),
-                FieldError("b", OneError("second")),
-            )),
+            ManyErrors(
+                setOf(
+                    FieldError("a", OneError("first")),
+                    FieldError("b", OneError("second")),
+                )
+            ),
             parseObj(TestSrc::class, ::TestDst.curry())
                 .required(TestSrc::a, failFirst)
                 .optional(TestSrc::b, failSecond)
