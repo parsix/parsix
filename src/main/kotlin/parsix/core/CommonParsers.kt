@@ -1,6 +1,12 @@
 package parsix.core
 
 /**
+ * The most basic parse, it will always succeed with [result]
+ */
+fun <I, O> succeed(result: O): Parse<I, O> =
+    { _ -> Ok(result) }
+
+/**
  * @see notNullable
  */
 object RequiredError : OneError()
@@ -76,7 +82,9 @@ inline fun <reified T> parseTyped(inp: Any, type: String): Parsed<T> =
 data class MinError<T : Comparable<T>>(val min: T) : OneError()
 
 /**
- * Ensure a [Comparable] is greater than or equal to [min].
+ * Make a `parse` that ensures a [Comparable] is greater than or equal to [min]
+ * and returns [MinError] otherwise
+ *
  * A common case is to use it with numbers, for example:
  * ```
  * parseMin(10)(4)      // => MinError(10)
@@ -84,7 +92,6 @@ data class MinError<T : Comparable<T>>(val min: T) : OneError()
  * ```
  *
  * @see parseBetween if you need a range
- * @return [MinError] in case of failure
  */
 fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
     if (inp < min)
@@ -99,15 +106,16 @@ fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
 data class MaxError<T : Comparable<T>>(val max: T) : OneError()
 
 /**
- * Ensure a [Comparable] is less a than or equal to [max].
+ * Make a `parse` that ensures a [Comparable] is less a than or equal to [max]
+ * and returns [MaxError] otherwise
+ *
  * A common case is to use it with numbers, for example:
  * ```
- * parseMin(10)(4)      // => MinError(10)
+ * parseMax(10)(4)      // => MaxError(10)
  * parseMin(10.5)(11.0) // => Ok(10.5)
  * ```
  *
  * @see parseBetween if you need a range
- * @return [MinError] in case of failure
  */
 fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
     if (inp > max)
@@ -119,12 +127,11 @@ fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
 data class BetweenError<T : Comparable<T>>(val min: T, val max: T) : OneError()
 
 /**
- * Ensure [Comparable] is between [min] and [max], inclusive.
+ * Make a `parse` that ensures [Comparable] is between [min] and [max], inclusive,
+ * and returns [BetweenError] otherwise.
  *
  * @see parseMin
  * @see parseMax
- *
- * @return [BetweenError] in case of failure
  */
 fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
     when {
@@ -279,6 +286,7 @@ fun parseLong(inp: Any): Parsed<Long> =
             LongError
 
     }
+
 /**
  * @see [parseDouble]
  */
