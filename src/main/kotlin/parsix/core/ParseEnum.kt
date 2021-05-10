@@ -4,7 +4,7 @@ interface ParsableEnum {
     val key: String
 }
 
-data class EnumArgs(val expected: Set<String>)
+data class EnumError(val expected: Set<String>) : OneError()
 inline fun <reified T> parseEnum(): Parse<String, T>
     where T : Enum<T>, T : ParsableEnum {
     val map = buildMap<T>()
@@ -12,10 +12,7 @@ inline fun <reified T> parseEnum(): Parse<String, T>
     return { inp ->
         map[inp]
             ?.let(::Ok)
-            ?: OneError(
-                CommonErrors.enumInvalid,
-                EnumArgs(map.keys)
-            )
+            ?: EnumError(map.keys)
     }
 }
 

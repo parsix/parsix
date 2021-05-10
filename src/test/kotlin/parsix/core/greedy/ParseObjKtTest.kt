@@ -3,7 +3,7 @@ package parsix.core.greedy
 import parsix.core.FieldError
 import parsix.core.ManyErrors
 import parsix.core.Ok
-import parsix.core.OneError
+import parsix.core.TestError
 import parsix.core.Parse
 import parsix.core.curry
 import kotlin.test.Test
@@ -34,15 +34,15 @@ internal class ParseObjKtTest {
     @Test
     fun `it greedily collect errors`() {
         val failFirst: Parse<String, String> =
-            { _ -> OneError("first") }
+            { _ -> TestError("first") }
         val failSecond: Parse<String, Int> =
-            { _ -> OneError("second") }
+            { _ -> TestError("second") }
 
         assertEquals(
             ManyErrors(
                 setOf(
-                    FieldError("a", OneError("first")),
-                    FieldError("b", OneError("second")),
+                    FieldError("a", TestError("first")),
+                    FieldError("b", TestError("second")),
                 )
             ),
             parseObj(TestSrc::class, ::TestDst.curry())

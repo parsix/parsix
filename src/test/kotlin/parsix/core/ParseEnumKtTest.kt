@@ -21,6 +21,10 @@ internal class ParseEnumKtTest {
     @Test
     fun `parseEnum returns Test2 on two`() {
         assertEquals(
+            Double.MAX_VALUE,
+            Double.MAX_VALUE.toLong().toDouble()
+        )
+        assertEquals(
             Ok(TestEnum.Test2),
             parseEnum<TestEnum>()("two")
         )
@@ -29,10 +33,7 @@ internal class ParseEnumKtTest {
     @Test
     fun `parseEnum fails on unknown value`() {
         assertEquals(
-            OneError(
-                CommonErrors.enumInvalid,
-                EnumArgs(setOf("one", "two"))
-            ),
+            EnumError(setOf("one", "two")),
             parseEnum<TestEnum>()("unknown")
         )
     }

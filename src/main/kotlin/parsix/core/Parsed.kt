@@ -20,12 +20,7 @@ fun <T> Parsed<T>.mapError(f: (ParseError) -> ParseError): Parsed<T> =
 data class Ok<T>(val value: T) : Parsed<T>()
 sealed class ParseError : Parsed<Nothing>()
 
-data class OneError(
-    val error: String,
-    val args: Any
-) : ParseError() {
-    constructor(error: String) : this(error, Unit)
-}
+abstract class OneError : ParseError()
 
 data class FieldError(val field: String, val error: ParseError) : ParseError()
 

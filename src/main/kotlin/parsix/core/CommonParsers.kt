@@ -1,28 +1,26 @@
 package parsix.core
 
-object CommonErrors {
-    const val required = "required"
-    const val boolInvalid = "bool.invalid"
-    const val stringInvalid = "string.invalid"
-    const val intInvalid = "int.invalid"
-    const val uintInvalid = "unit.invalid"
-    const val uintNegative = "unit.negative"
+/**
+ * @see notNullable
+ */
+object RequiredError : OneError()
 
-    const val minValue = "min-value"
-    const val maxValue = "max-value"
-    const val betweenValue = "btwn-value"
-
-    const val enumInvalid = "enum.invalid"
-}
-
+/**
+ * Enhance [parse] so that it can handle a nullable input.
+ * The final parser will return [RequiredError] if the input is null.
+ */
 fun <I : Any, O> notNullable(parse: Parse<I, O>): Parse<I?, O> =
     { inp ->
         if (inp == null)
-            OneError(CommonErrors.required)
+            RequiredError
         else
             parse(inp)
     }
 
+/**
+ * Enhance [parse] so that it can handle a nullable input.
+ * If the input is null, it will use [default] as value.
+ */
 fun <I : Any, O : Any> nullable(default: O, parse: Parse<I, O>): Parse<I?, O> =
     { inp ->
         if (inp == null)
@@ -31,6 +29,10 @@ fun <I : Any, O : Any> nullable(default: O, parse: Parse<I, O>): Parse<I?, O> =
             parse(inp)
     }
 
+/**
+ * Enhance [parse] so that it can handle a nullable input.
+ * If the input is null, that will be the result.
+ */
 fun <I : Any, O : Any> nullable(parse: Parse<I, O>): Parse<I?, O?> =
     { inp ->
         if (inp == null)
@@ -39,110 +41,281 @@ fun <I : Any, O : Any> nullable(parse: Parse<I, O>): Parse<I?, O?> =
             parse(inp)
     }
 
+/**
+ * Parse [Any] into [String].
+ * @return [TypedError] in case of failure.
+ */
 fun parseString(inp: Any): Parsed<String> =
-    parseTyped(inp, CommonErrors.stringInvalid)
+    parseTyped(inp, "string")
 
+/**
+ * Parse [Any] into [Boolean].
+ * @return [TypedError] in case of failure.
+ */
 fun parseBool(inp: Any): Parsed<Boolean> =
-    parseTyped(inp, CommonErrors.boolInvalid)
+    parseTyped(inp, "bool")
 
-inline fun <reified T> parseTyped(inp: Any, err: String): Parsed<T> =
+/**
+ * @see parseTyped
+ */
+data class TypedError(val type: String) : OneError()
+
+/**
+ * Generic parser, it can be used to easily convert from [Any] to a specific type [T]
+ * @return [TypedError] in case of failure
+ */
+inline fun <reified T> parseTyped(inp: Any, type: String): Parsed<T> =
     if (inp is T)
         Ok(inp)
     else
-        OneError(err)
+        TypedError(type)
 
+/**
+ * @see parseMin
+ */
+data class MinError<T : Comparable<T>>(val min: T) : OneError()
+
+/**
+ * Ensure a [Comparable] is greater than or equal to [min].
+ * A common case is to use it with numbers, for example:
+ * ```
+ * parseMin(10)(4)      // => MinError(10)
+ * parseMin(10.5)(11.0) // => Ok(10.5)
+ * ```
+ *
+ * @see parseBetween if you need a range
+ * @return [MinError] in case of failure
+ */
+fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
+    if (inp < min)
+        MinError(min)
+    else
+        Ok(inp)
+}
+
+/**
+ * @see parseMax
+ */
+data class MaxError<T : Comparable<T>>(val max: T) : OneError()
+
+/**
+ * Ensure a [Comparable] is less a than or equal to [max].
+ * A common case is to use it with numbers, for example:
+ * ```
+ * parseMin(10)(4)      // => MinError(10)
+ * parseMin(10.5)(11.0) // => Ok(10.5)
+ * ```
+ *
+ * @see parseBetween if you need a range
+ * @return [MinError] in case of failure
+ */
+fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
+    if (inp > max)
+        MaxError(max)
+    else
+        Ok(inp)
+}
+
+data class BetweenError<T : Comparable<T>>(val min: T, val max: T) : OneError()
+
+/**
+ * Ensure [Comparable] is between [min] and [max], inclusive.
+ *
+ * @see parseMin
+ * @see parseMax
+ *
+ * @return [BetweenError] in case of failure
+ */
+fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
+    when {
+        inp < min ->
+            BetweenError(min, max)
+
+        inp > max ->
+            BetweenError(min, max)
+
+        else ->
+            Ok(inp)
+    }
+}
+
+/**
+ * @see [parseInt]
+ */
+object IntError : OneError()
+
+/**
+ * Parse an [Any] into a [Int].
+ * It supports the following types:
+ * - [Int], returns it
+ * - [UInt], value must be no greater than [Int.MAX_VALUE], [MaxError] otherwise
+ * - [Long], value must be between [Int.MIN_VALUE] and [Int.MAX_VALUE], [BetweenError] otherwise
+ * - [Double], value must be between [Int.MIN_VALUE] and [Int.MAX_VALUE], [BetweenError] otherwise
+ * - [String], must be a valid int, [IntError] otherwise
+ *
+ * Anything else will fail with [IntError]
+ */
 fun parseInt(inp: Any): Parsed<Int> =
     when (inp) {
-        is Int ->
-            Ok(inp)
-        is UInt ->
-            Ok(inp.toInt())
-
-        is Long ->
-            when {
-                Int.MIN_VALUE > inp ->
-                    OneError(CommonErrors.minValue, MinArgs(Int.MIN_VALUE))
-                Int.MAX_VALUE < inp ->
-                    OneError(CommonErrors.maxValue, MaxArgs(Int.MAX_VALUE))
-                else ->
-                    Ok(inp.toInt())
-            }
-
         is String ->
             try {
                 Ok(inp.toInt())
             } catch (ex: NumberFormatException) {
-                OneError(CommonErrors.intInvalid)
+                IntError
             }
-        else ->
-            OneError(CommonErrors.intInvalid)
-    }
 
-fun parseUInt(inp: Any): Parsed<UInt> =
-    when (inp) {
-        is UInt ->
-            Ok(inp)
         is Int ->
-            if (inp >= 0)
-                Ok(inp.toUInt())
+            Ok(inp)
+
+        is UInt ->
+            if (inp > Int.MAX_VALUE.toUInt())
+                MaxError(Int.MAX_VALUE)
             else
-                OneError(CommonErrors.uintNegative)
+                Ok(inp.toInt())
 
         is Long ->
-            when {
-                inp < 0 ->
-                    OneError(CommonErrors.uintNegative)
-                UInt.MAX_VALUE.toLong() < inp ->
-                    OneError(CommonErrors.maxValue, MaxArgs(UInt.MAX_VALUE))
-                else ->
-                    Ok(inp.toUInt())
-            }
+            if (Int.MIN_VALUE > inp || Int.MAX_VALUE < inp)
+                BetweenError(Int.MIN_VALUE, Int.MAX_VALUE)
+            else
+                Ok(inp.toInt())
 
+        is Double ->
+            if (Int.MIN_VALUE > inp || Int.MAX_VALUE < inp)
+                BetweenError(Int.MIN_VALUE, Int.MAX_VALUE)
+            else
+                Ok(inp.toInt())
+
+        else ->
+            IntError
+    }
+
+/**
+ * @see [parseUInt]
+ */
+object UIntError : OneError()
+
+/**
+ * Parse an [Any] into a [UInt].
+ * It supports the following types:
+ * - [UInt], returns it
+ * - [Int], value cannot be less than 0, [MinError] otherwise
+ * - [Long], value must be between 0 and [UInt.MAX_VALUE], [BetweenError] otherwise
+ * - [String], must be a valid unsigned int, [UIntError] otherwise
+ *
+ * Anything else will fail with [UIntError]
+ */
+fun parseUInt(inp: Any): Parsed<UInt> =
+    when (inp) {
         is String ->
             try {
                 Ok(inp.toUInt())
             } catch (ex: NumberFormatException) {
-                OneError(CommonErrors.uintInvalid)
+                UIntError
             }
-        else ->
-            OneError(CommonErrors.uintInvalid)
-    }
 
-data class MinArgs<T : Comparable<T>>(val min: T)
-
-fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
-    if (inp < min)
-        OneError(CommonErrors.minValue, MinArgs(min))
-    else
-        Ok(inp)
-}
-
-data class MaxArgs<T : Comparable<T>>(val max: T)
-
-fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
-    if (inp > max)
-        OneError(CommonErrors.maxValue, MaxArgs(max))
-    else
-        Ok(inp)
-}
-
-data class BetweenArgs<T : Comparable<T>>(val min: T, val max: T)
-
-fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
-    when {
-        inp < min ->
-            OneError(
-                CommonErrors.betweenValue,
-                BetweenArgs(min, max)
-            )
-
-        inp > max ->
-            OneError(
-                CommonErrors.betweenValue,
-                BetweenArgs(min, max)
-            )
-
-        else ->
+        is UInt ->
             Ok(inp)
+
+        is Int ->
+            if (inp < 0)
+                MinError(0)
+            else
+                Ok(inp.toUInt())
+
+        is Long ->
+            if (inp < 0 || inp > UInt.MAX_VALUE.toLong())
+                BetweenError(0U, UInt.MAX_VALUE)
+            else
+                Ok(inp.toUInt())
+
+        is Double ->
+            if (inp < UInt.MIN_VALUE.toDouble() || inp > UInt.MAX_VALUE.toDouble())
+                BetweenError(UInt.MIN_VALUE, UInt.MAX_VALUE)
+            else
+                Ok(inp.toUInt())
+
+        else ->
+            UIntError
     }
-}
+
+/**
+ * @see [parseLong]
+ */
+object LongError : OneError()
+
+/**
+ * Parse an [Any] into a [Long].
+ * It supports the following types:
+ * - [Long], [Int], [UInt]
+ * - [Double], must be between [Long.MIN_VALUE] and [Long.MAX_VALUE], [BetweenError] otherwise
+ * - [String], must be a valid long int, [LongError] otherwise
+ *
+ * Anything else will fail with [LongError]
+ */
+fun parseLong(inp: Any): Parsed<Long> =
+    when (inp) {
+        is String ->
+            try {
+                Ok(inp.toLong())
+            } catch (ex: NumberFormatException) {
+                LongError
+            }
+
+        is Long ->
+            Ok(inp)
+
+        is UInt ->
+            Ok(inp.toLong())
+
+        is Int ->
+            Ok(inp.toLong())
+
+        is Double ->
+            if (inp < Long.MIN_VALUE.toDouble() || inp > Long.MAX_VALUE.toDouble())
+                BetweenError(Long.MIN_VALUE, Long.MAX_VALUE)
+            else
+                Ok(inp.toLong())
+        else ->
+            LongError
+
+    }
+/**
+ * @see [parseDouble]
+ */
+object DoubleError : OneError()
+
+/**
+ * Parse an [Any] into a [Double].
+ * It supports the following types:
+ * - [Double], [Float], [Int], [UInt], [Long]
+ * - [String], must be a valid double, [DoubleError] otherwise
+ *
+ * Anything else will fail with [DoubleError]
+ */
+fun parseDouble(inp: Any): Parsed<Double> =
+    when (inp) {
+        is String ->
+            try {
+                Ok(inp.toDouble())
+            } catch (ex: NumberFormatException) {
+                LongError
+            }
+
+        is Double ->
+            Ok(inp)
+
+        is Float ->
+            Ok(inp.toDouble())
+
+        is Long ->
+            Ok(inp.toDouble())
+
+        is UInt ->
+            Ok(inp.toDouble())
+
+        is Int ->
+            Ok(inp.toDouble())
+
+        else ->
+            DoubleError
+    }

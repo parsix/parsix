@@ -1,11 +1,11 @@
 package parsix.core.greedy
 
-import parsix.core.CommonErrors
 import parsix.core.FieldError
 import parsix.core.ManyErrors
 import parsix.core.Ok
-import parsix.core.OneError
+import parsix.core.TestError
 import parsix.core.Parse
+import parsix.core.RequiredError
 import parsix.core.curry
 import parsix.core.parseInt
 import parsix.core.parseString
@@ -42,7 +42,7 @@ internal class ParseMapKtTest {
             { _ -> Ok(10) }
 
         assertEquals(
-            FieldError("1st", OneError(CommonErrors.required)),
+            FieldError("1st", RequiredError),
             parseMap(::TestData.curry())
                 .required("1st", neverCalled)
                 .optional("snd", succeed)
@@ -70,16 +70,16 @@ internal class ParseMapKtTest {
     @Test
     fun `it greedily collect errors`() {
         val fail1st: Parse<Any, String> =
-            { _ -> OneError("fail first") }
+            { _ -> TestError("fail first") }
 
         val fail2nd: Parse<Any, Int> =
-            { _ -> OneError("fail second") }
+            { _ -> TestError("fail second") }
 
         assertEquals(
             ManyErrors(
                 setOf(
-                    FieldError("1st", OneError("fail first")),
-                    FieldError("snd", OneError("fail second")),
+                    FieldError("1st", TestError("fail first")),
+                    FieldError("snd", TestError("fail second")),
                 )
             ),
             parseMap(::TestData.curry())
