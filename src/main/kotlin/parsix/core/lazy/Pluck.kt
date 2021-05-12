@@ -3,8 +3,6 @@ package parsix.core.lazy
 import parsix.core.Ok
 import parsix.core.Parse
 import parsix.core.ParseError
-import parsix.core.greedy.parseMap
-import parsix.core.greedy.parseObj
 
 /**
  * This is the building block for complex data structures.
@@ -25,8 +23,7 @@ import parsix.core.greedy.parseObj
  * ```
  * In the case above, `quickParse` will run before `heavyParse`.
  *
- * @see parseMap
- * @see parseObj
+ * @see parsix.core.parseInto
  */
 fun <I, A, B> Parse<I, (A) -> B>.lazyPluck(parse: Parse<I, A>): Parse<I, B> =
     { inp ->

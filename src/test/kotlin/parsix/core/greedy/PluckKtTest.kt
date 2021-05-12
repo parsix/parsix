@@ -3,6 +3,7 @@ package parsix.core.greedy
 import parsix.core.ManyErrors
 import parsix.core.Ok
 import parsix.core.curry
+import parsix.core.parseInto
 import parsix.core.succeed
 import parsix.test.TestError
 import kotlin.test.Test
@@ -15,7 +16,7 @@ internal class PluckKtTest {
     fun `it successfully parses the input`() {
         assertEquals(
             Ok(TestData(10, "test")),
-            parseMap(::TestData.curry())
+            parseInto(::TestData.curry())
                 .greedyPluck(succeed(10))
                 .greedyPluck(succeed("test"))
                 .invoke(mapOf())
@@ -31,7 +32,7 @@ internal class PluckKtTest {
                     TestError("second"),
                 )
             ),
-            parseMap (::TestData.curry())
+            parseInto (::TestData.curry())
                 .greedyPluck(TestError.of("first"))
                 .greedyPluck(TestError.of("second"))
                 .invoke(mapOf())

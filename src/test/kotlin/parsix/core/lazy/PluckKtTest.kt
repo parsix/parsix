@@ -3,6 +3,7 @@ package parsix.core.lazy
 import parsix.core.Ok
 import parsix.core.Parse
 import parsix.core.curry
+import parsix.core.parseInto
 import parsix.core.succeed
 import parsix.test.TestError
 import kotlin.test.Test
@@ -16,7 +17,7 @@ internal class PluckKtTest {
     fun `it correctly parses the input`() {
         assertEquals(
             Ok(TestData(10, "test")),
-            lazyParseMap(::TestData.curry())
+            parseInto(::TestData.curry())
                 .lazyPluck(succeed(10))
                 .lazyPluck(succeed("test"))
                 .invoke(mapOf())
@@ -32,7 +33,7 @@ internal class PluckKtTest {
 
         assertEquals(
             TestError("failure"),
-            lazyParseMap(::TestData.curry())
+            parseInto(::TestData.curry())
                 .lazyPluck(crashParse)
                 .lazyPluck(failParse)
                 .invoke(mapOf())

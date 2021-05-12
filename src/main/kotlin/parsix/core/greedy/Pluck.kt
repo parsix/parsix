@@ -14,8 +14,7 @@ import parsix.core.combineErrors
  *
  * This combinator will greedily parse the input and collect all errors into a [ManyErrors][parsix.core.ManyErrors].
  *
- * @see parseMap
- * @see parseObj
+ * @see parseInto
  */
 fun <I, A, B> Parse<I, (A) -> B>.greedyPluck(parse: Parse<I, A>): Parse<I, B> =
     { inp ->

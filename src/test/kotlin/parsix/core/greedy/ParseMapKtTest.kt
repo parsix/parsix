@@ -6,6 +6,7 @@ import parsix.core.Ok
 import parsix.core.RequiredError
 import parsix.core.curry
 import parsix.core.parseInt
+import parsix.core.parseInto
 import parsix.core.parseString
 import parsix.core.succeed
 import parsix.test.TestError
@@ -21,7 +22,7 @@ internal class ParseMapKtTest {
     fun `it successfully parses then input`() {
         assertEquals(
             Ok(TestData("Hello", null)),
-            parseMap(::TestData.curry())
+            parseInto(::TestData.curry())
                 .required("1st", ::parseString)
                 .optional("snd", ::parseInt)
                 .invoke(
@@ -37,7 +38,7 @@ internal class ParseMapKtTest {
     fun `required fields must be present in the input map`() {
         assertEquals(
             KeyError("1st", RequiredError),
-            parseMap(::TestData.curry())
+            parseInto(::TestData.curry())
                 .required("1st", neverCalled())
                 .optional("snd", succeed(10))
                 .invoke(mapOf("snd" to "present"))
@@ -48,7 +49,7 @@ internal class ParseMapKtTest {
     fun `optional fields can be omitted`() {
         assertEquals(
             Ok(TestData("ok", null)),
-            parseMap(::TestData.curry())
+            parseInto(::TestData.curry())
                 .required("1st", succeed("ok"))
                 .optional("snd", neverCalled())
                 .invoke(mapOf("1st" to "present"))
@@ -64,7 +65,7 @@ internal class ParseMapKtTest {
                     KeyError("snd", TestError("fail second")),
                 )
             ),
-            parseMap(::TestData.curry())
+            parseInto(::TestData.curry())
                 .required("1st", TestError.of("fail first"))
                 .optional("snd", TestError.of("fail second"))
                 .invoke(
