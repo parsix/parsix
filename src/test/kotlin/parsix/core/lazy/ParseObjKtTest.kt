@@ -27,7 +27,7 @@ internal class ParseObjKtTest {
     @Test
     fun `it short-circuits on first error`() {
         assertEquals(
-            PropError("b", TestError("second")),
+            PropError(TestSrc::b, TestError("second")),
             lazyParseObj(TestSrc::class, ::TestDst.curry())
                 .required(TestSrc::a, neverCalled())
                 .optional(TestSrc::b, TestError.of("second"))

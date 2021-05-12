@@ -3,11 +3,11 @@ package parsix.core
 /**
  * @see parseKey
  */
-data class FieldError(val key: String, val error: ParseError) : OneError()
+data class KeyError(val key: String, val error: ParseError) : OneError()
 
 /**
  * Make a parser that will extract a key from a [Map] and [parse] it.
- * In case of failure, the error will be wrapped into a [FieldError]
+ * In case of failure, the error will be wrapped into a [KeyError]
  */
 fun <O> parseKey(
     key: String,
@@ -15,6 +15,6 @@ fun <O> parseKey(
 ): Parse<Map<String, Any?>, O> =
     { inp ->
         parse(inp[key]).mapError {
-            FieldError(key, it)
+            KeyError(key, it)
         }
     }

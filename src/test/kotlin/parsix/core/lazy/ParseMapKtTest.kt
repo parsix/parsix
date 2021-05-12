@@ -1,6 +1,6 @@
 package parsix.core.lazy
 
-import parsix.core.FieldError
+import parsix.core.KeyError
 import parsix.core.Ok
 import parsix.core.RequiredError
 import parsix.core.curry
@@ -34,7 +34,7 @@ internal class ParseMapKtTest {
     @Test
     fun `required fields must be present in the input map`() {
         assertEquals(
-            FieldError("1st", RequiredError),
+            KeyError("1st", RequiredError),
             lazyParseMap(::TestData.curry())
                 .required("1st", neverCalled())
                 .optional("snd", succeed(10))
@@ -56,7 +56,7 @@ internal class ParseMapKtTest {
     @Test
     fun `it short-circuits on first error`() {
         assertEquals(
-            FieldError("snd", TestError("fail fast")),
+            KeyError("snd", TestError("fail fast")),
             lazyParseMap(::TestData.curry())
                 .required("1st", neverCalled())
                 .optional("snd", TestError.of("fail fast"))

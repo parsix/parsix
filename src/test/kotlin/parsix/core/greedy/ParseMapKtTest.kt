@@ -1,6 +1,6 @@
 package parsix.core.greedy
 
-import parsix.core.FieldError
+import parsix.core.KeyError
 import parsix.core.ManyErrors
 import parsix.core.Ok
 import parsix.core.RequiredError
@@ -36,7 +36,7 @@ internal class ParseMapKtTest {
     @Test
     fun `required fields must be present in the input map`() {
         assertEquals(
-            FieldError("1st", RequiredError),
+            KeyError("1st", RequiredError),
             parseMap(::TestData.curry())
                 .required("1st", neverCalled())
                 .optional("snd", succeed(10))
@@ -60,8 +60,8 @@ internal class ParseMapKtTest {
         assertEquals(
             ManyErrors(
                 setOf(
-                    FieldError("1st", TestError("fail first")),
-                    FieldError("snd", TestError("fail second")),
+                    KeyError("1st", TestError("fail first")),
+                    KeyError("snd", TestError("fail second")),
                 )
             ),
             parseMap(::TestData.curry())

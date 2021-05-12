@@ -64,7 +64,7 @@ fun parseBool(inp: Any): Parsed<Boolean> =
 /**
  * @see parseTyped
  */
-data class TypedError(val type: String) : OneError()
+data class TypedError(val inp: Any, val type: String) : OneError()
 
 /**
  * Generic parser, it can be used to easily convert from [Any] to a specific type [T]
@@ -74,12 +74,12 @@ inline fun <reified T> parseTyped(inp: Any, type: String): Parsed<T> =
     if (inp is T)
         Ok(inp)
     else
-        TypedError(type)
+        TypedError(inp, type)
 
 /**
  * @see parseMin
  */
-data class MinError<T : Comparable<T>>(val min: T) : OneError()
+data class MinError<T : Comparable<T>>(val inp: Any, val min: T) : OneError()
 
 /**
  * Make a `parse` that ensures a [Comparable] is greater than or equal to [min]
@@ -95,7 +95,7 @@ data class MinError<T : Comparable<T>>(val min: T) : OneError()
  */
 fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
     if (inp < min)
-        MinError(min)
+        MinError(inp, min)
     else
         Ok(inp)
 }
@@ -103,7 +103,7 @@ fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
 /**
  * @see parseMax
  */
-data class MaxError<T : Comparable<T>>(val max: T) : OneError()
+data class MaxError<T : Comparable<T>>(val inp: Any, val max: T) : OneError()
 
 /**
  * Make a `parse` that ensures a [Comparable] is less a than or equal to [max]
@@ -119,12 +119,16 @@ data class MaxError<T : Comparable<T>>(val max: T) : OneError()
  */
 fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
     if (inp > max)
-        MaxError(max)
+        MaxError(inp, max)
     else
         Ok(inp)
 }
 
-data class BetweenError<T : Comparable<T>>(val min: T, val max: T) : OneError()
+data class BetweenError<T : Comparable<T>>(
+    val inp: Any,
+    val min: T,
+    val max: T
+) : OneError()
 
 /**
  * Make a `parse` that ensures [Comparable] is between [min] and [max], inclusive,
@@ -136,10 +140,10 @@ data class BetweenError<T : Comparable<T>>(val min: T, val max: T) : OneError()
 fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
     when {
         inp < min ->
-            BetweenError(min, max)
+            BetweenError(inp, min, max)
 
         inp > max ->
-            BetweenError(min, max)
+            BetweenError(inp, min, max)
 
         else ->
             Ok(inp)
@@ -149,7 +153,7 @@ fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
 /**
  * @see [parseInt]
  */
-object IntError : OneError()
+data class IntError(val inp: Any) : OneError()
 
 /**
  * Parse an [Any] into a [Int].
@@ -168,7 +172,7 @@ fun parseInt(inp: Any): Parsed<Int> =
             try {
                 Ok(inp.toInt())
             } catch (ex: NumberFormatException) {
-                IntError
+                IntError(inp)
             }
 
         is Int ->
@@ -176,30 +180,30 @@ fun parseInt(inp: Any): Parsed<Int> =
 
         is UInt ->
             if (inp > Int.MAX_VALUE.toUInt())
-                MaxError(Int.MAX_VALUE)
+                MaxError(inp, Int.MAX_VALUE)
             else
                 Ok(inp.toInt())
 
         is Long ->
             if (Int.MIN_VALUE > inp || Int.MAX_VALUE < inp)
-                BetweenError(Int.MIN_VALUE, Int.MAX_VALUE)
+                BetweenError(inp, Int.MIN_VALUE, Int.MAX_VALUE)
             else
                 Ok(inp.toInt())
 
         is Double ->
             if (Int.MIN_VALUE > inp || Int.MAX_VALUE < inp)
-                BetweenError(Int.MIN_VALUE, Int.MAX_VALUE)
+                BetweenError(inp, Int.MIN_VALUE, Int.MAX_VALUE)
             else
                 Ok(inp.toInt())
 
         else ->
-            IntError
+            IntError(inp)
     }
 
 /**
  * @see [parseUInt]
  */
-object UIntError : OneError()
+data class UIntError(val inp: Any) : OneError()
 
 /**
  * Parse an [Any] into a [UInt].
@@ -217,7 +221,7 @@ fun parseUInt(inp: Any): Parsed<UInt> =
             try {
                 Ok(inp.toUInt())
             } catch (ex: NumberFormatException) {
-                UIntError
+                UIntError(inp)
             }
 
         is UInt ->
@@ -225,30 +229,30 @@ fun parseUInt(inp: Any): Parsed<UInt> =
 
         is Int ->
             if (inp < 0)
-                MinError(0)
+                MinError(inp, 0)
             else
                 Ok(inp.toUInt())
 
         is Long ->
             if (inp < 0 || inp > UInt.MAX_VALUE.toLong())
-                BetweenError(0U, UInt.MAX_VALUE)
+                BetweenError(inp, UInt.MIN_VALUE, UInt.MAX_VALUE)
             else
                 Ok(inp.toUInt())
 
         is Double ->
             if (inp < UInt.MIN_VALUE.toDouble() || inp > UInt.MAX_VALUE.toDouble())
-                BetweenError(UInt.MIN_VALUE, UInt.MAX_VALUE)
+                BetweenError(inp, UInt.MIN_VALUE, UInt.MAX_VALUE)
             else
                 Ok(inp.toUInt())
 
         else ->
-            UIntError
+            UIntError(inp)
     }
 
 /**
  * @see [parseLong]
  */
-object LongError : OneError()
+data class LongError(val inp: Any) : OneError()
 
 /**
  * Parse an [Any] into a [Long].
@@ -265,7 +269,7 @@ fun parseLong(inp: Any): Parsed<Long> =
             try {
                 Ok(inp.toLong())
             } catch (ex: NumberFormatException) {
-                LongError
+                LongError(inp)
             }
 
         is Long ->
@@ -279,18 +283,18 @@ fun parseLong(inp: Any): Parsed<Long> =
 
         is Double ->
             if (inp < Long.MIN_VALUE.toDouble() || inp > Long.MAX_VALUE.toDouble())
-                BetweenError(Long.MIN_VALUE, Long.MAX_VALUE)
+                BetweenError(inp, Long.MIN_VALUE, Long.MAX_VALUE)
             else
                 Ok(inp.toLong())
         else ->
-            LongError
+            LongError(inp)
 
     }
 
 /**
  * @see [parseDouble]
  */
-object DoubleError : OneError()
+data class DoubleError(val inp: Any) : OneError()
 
 /**
  * Parse an [Any] into a [Double].
@@ -306,7 +310,7 @@ fun parseDouble(inp: Any): Parsed<Double> =
             try {
                 Ok(inp.toDouble())
             } catch (ex: NumberFormatException) {
-                LongError
+                LongError(inp)
             }
 
         is Double ->
@@ -325,5 +329,5 @@ fun parseDouble(inp: Any): Parsed<Double> =
             Ok(inp.toDouble())
 
         else ->
-            DoubleError
+            DoubleError(inp)
     }

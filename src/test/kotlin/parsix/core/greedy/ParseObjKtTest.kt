@@ -29,8 +29,8 @@ internal class ParseObjKtTest {
         assertEquals(
             ManyErrors(
                 setOf(
-                    PropError("a", TestError("first")),
-                    PropError("b", TestError("second")),
+                    PropError(TestSrc::a, TestError("first")),
+                    PropError(TestSrc::b, TestError("second")),
                 )
             ),
             parseObj(TestSrc::class, ::TestDst.curry())
