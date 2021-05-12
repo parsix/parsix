@@ -1,7 +1,7 @@
 package parsix.core
 
 /**
- * Model the result of a [Parse].
+ * Model the result of a [Parse]
  *
  * @see Ok
  * @see ParseError
@@ -9,8 +9,20 @@ package parsix.core
 sealed class Parsed<out T>
 
 /**
- * Transform a successful value into something else
- * @see [Parse.map]
+ * Transform a successful result into another [Parsed]
+ */
+inline fun <A, B> Parsed<A>.flatMap(
+    crossinline f: (A) -> Parsed<B>
+): Parsed<B> =
+    when (this) {
+        is Ok ->
+            f(this.value)
+        is ParseError ->
+            this
+    }
+
+/**
+ * Transform a successful result into something else
  */
 inline fun <A, B> Parsed<A>.map(
     crossinline f: (A) -> B
@@ -24,7 +36,6 @@ inline fun <A, B> Parsed<A>.map(
 
 /**
  * Transform a failure into another failure
- * @see Parse.mapError
  */
 inline fun <T> Parsed<T>.mapError(
     crossinline f: (ParseError) -> ParseError
@@ -52,11 +63,16 @@ sealed class ParseError : Parsed<Nothing>()
 abstract class OneError : ParseError()
 
 /**
- * Model a collection of errors
+ * Model a collection of errors.
  */
 class ManyErrors(errors: Set<ParseError>) : ParseError() {
     private val errors = errors.toMutableSet()
 
+    /**
+     * Add a new error in the set of errors.
+     * Please be aware that it will mutate the instance and should be used with care!
+     * @return self
+     */
     fun add(err: ParseError): ParseError = this.also {
         when (err) {
             is OneError ->

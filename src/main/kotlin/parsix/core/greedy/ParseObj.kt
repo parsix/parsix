@@ -40,7 +40,7 @@ fun <I, P : Any, A : Any, B> Parse<I, (A) -> B>.required(
     this.pluckProp(prop, notNullable(parse))
 
 /**
- * When [prop] is nullable, it will just provide [null] as an argument, * otherwise it
+ * When [prop] is nullable, it will just provide [null] as an argument, otherwise it
  * will [parse] the returned value.
  *
  * This method is greedy and will gather all parse failures.
@@ -57,7 +57,7 @@ fun <I, P : Any, A : Any, B> Parse<I, (A?) -> B>.optional(
     this.pluckProp(prop, nullable(parse))
 
 /**
- * When [prop] is nullable, it will just provide [default] as an argument, * otherwise it
+ * When [prop] is nullable, it will just provide [default] as an argument, otherwise it
  * will [parse] the returned value.
  *
  * This method is greedy and will gather all parse failures.

@@ -11,11 +11,11 @@ typealias Parse<I, O> =
  * Combine two parsers, [parse] will use the parsed value of [this].
  *
  * For example, to convert from an [Any] into an [Enum] we could:
- * ```
- * ::parseString then parseEnum<MyEnum>()
- * ```
+ * @sample samples.Parse.ThenExample
  */
-infix fun <I, T, O> Parse<I, T>.then(parse: Parse<T, O>): Parse<I, O> =
+inline infix fun <I, T, O> Parse<I, T>.then(
+    crossinline parse: Parse<T, O>
+): Parse<I, O> =
     { inp ->
         when (val parsed = this(inp)) {
             is Ok ->
@@ -26,14 +26,28 @@ infix fun <I, T, O> Parse<I, T>.then(parse: Parse<T, O>): Parse<I, O> =
     }
 
 /**
+ * Partially evaluate input, returns another parse and apply it to the same initial input.
+ *
+ * This combinator is useful whenever you need to parse a complex structure where we need
+ * to evaluate part of it before being able to understand how to fully parse it.
+ *
+ * If you are familiar with functional programming, you may know this operator as `flatMap`
+ *  or `bind`.
+ *
+ * @sample parsix.core.ParseEvalThenKtTest
+ */
+inline fun <I, T, O> Parse<I, T>.evalThen(
+    crossinline next: (inp: T) -> Parse<I, O>
+): Parse<I, O> =
+    { inp ->
+        this(inp).map(next).flatMap { it(inp) }
+    }
+
+/**
  * Transform a successful input into something else.
  *
- * This is quite useful when you want to provide a parse for a specific type, for example:
- * ```
- * data class Adult(val age: Int)
- * val parseAdult: Parse<Any, Adult> =
- *     ::parseInt.then(parseMin(18)).map(::Adult)
- * ```
+ * This is quite useful when you want to provide a parse for a specific type.
+ * @sample samples.Parse.mapExample
  */
 inline fun <I, T, O> Parse<I, T>.map(
     crossinline f: (T) -> O
@@ -45,13 +59,8 @@ inline fun <I, T, O> Parse<I, T>.map(
  *
  * This is quite useful when you want to provide a specific error type when combining
  * multiple parsers together:
- * ```
- * data class AdultError(val error: OneError) : OneError()
- * val parseAdult: Parse<Any, Int> =
- *     ::parseInt.then(parseMin(18)).mapError(::AdultError)
- * ```
  *
- * This will allow us to provide a more meaningful error message to our clients.
+ * @sample samples.Parse.mapErrorExample
  */
 inline fun <I, O> Parse<I, O>.mapError(
     crossinline f: (ParseError) -> ParseError

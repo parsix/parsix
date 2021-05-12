@@ -6,7 +6,9 @@
 
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin.
-    id("org.jetbrains.kotlin.jvm") version "1.5.0"
+    val kotlinVer = "1.5.0"
+    id("org.jetbrains.dokka") version "1.4.32" //kotlinVer
+    kotlin("jvm") version kotlinVer
 
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
@@ -30,4 +32,13 @@ dependencies {
 
     // Use the Kotlin JUnit integration.
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+}
+
+tasks.dokkaHtml.configure {
+    outputDirectory.set(buildDir.resolve("docs"))
+    dokkaSourceSets {
+        configureEach {
+            samples.from("test/kotlin")
+        }
+    }
 }

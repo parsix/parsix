@@ -23,7 +23,7 @@ fun <A, B> ParseMap<(A) -> B>.pluckKey(key: String, parse: Parse<Any?, A>): Pars
     this.greedyPluck(parseKey(key, parse))
 
 /**
- * Ensure the input Map contains a non-null [key], fails with [parxi.core.RequiredError] otherwise.
+ * Ensure the input Map contains a non-null [key], fails with [parsix.core.RequiredError] otherwise.
  * [parse] will receive the value associated with [key].
  *
  * This method is greedy and will gather all parse failures.
@@ -41,7 +41,7 @@ fun <A : Any, B> ParseMap<(A) -> B>.required(
     this.pluckKey(key, notNullable(parse))
 
 /**
- * Ensure the input Map contains a non-null [key], fails with [parxi.core.RequiredError] otherwise.
+ * Ensure the input Map contains a non-null [key], fails with [parsix.core.RequiredError] otherwise.
  * [parse] will receive the value associated with [key].
  *
  * This method is greedy and will gather all parse failures.

@@ -22,7 +22,7 @@ fun <A, B> ParseMap<(A) -> B>.lazyPluckKey(key: String, parse: Parse<Any?, A>): 
     this.lazyPluck(parseKey(key, parse))
 
 /**
- * Ensure the input Map contains a non-null [key], fails with [parxi.core.RequiredError] otherwise.
+ * Ensure the input Map contains a non-null [key], fails with [parsix.core.RequiredError] otherwise.
  * [parse] will receive the value associated with [key].
  *
  * This method fails fast in case parsing fails.
@@ -40,7 +40,7 @@ fun <A : Any, B> ParseMap<(A) -> B>.lazyRequired(
     this.lazyPluckKey(key, notNullable(parse))
 
 /**
- * Ensure the input Map contains a non-null [key], fails with [parxi.core.RequiredError] otherwise.
+ * Ensure the input Map contains a non-null [key], fails with [parsix.core.RequiredError] otherwise.
  * [parse] will receive the value associated with [key].
  *
  * This method fails fast in case parsing fails.
