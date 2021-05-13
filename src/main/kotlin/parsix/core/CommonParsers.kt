@@ -15,7 +15,7 @@ object RequiredError : OneError()
  * Enhance [parse] so that it can handle a nullable input.
  * The final parser will return [RequiredError] if the input is null.
  */
-fun <I : Any, O> notNullable(parse: Parse<I, O>): Parse<I?, O> =
+inline fun <I : Any, O> notNullable(crossinline parse: Parse<I, O>): Parse<I?, O> =
     { inp ->
         if (inp == null)
             RequiredError
@@ -27,7 +27,10 @@ fun <I : Any, O> notNullable(parse: Parse<I, O>): Parse<I?, O> =
  * Enhance [parse] so that it can handle a nullable input.
  * If the input is null, it will use [default] as value.
  */
-fun <I : Any, O : Any> nullable(default: O, parse: Parse<I, O>): Parse<I?, O> =
+inline fun <I : Any, O : Any> nullable(
+    default: O,
+    crossinline parse: Parse<I, O>
+): Parse<I?, O> =
     { inp ->
         if (inp == null)
             Ok(default)
@@ -39,7 +42,7 @@ fun <I : Any, O : Any> nullable(default: O, parse: Parse<I, O>): Parse<I?, O> =
  * Enhance [parse] so that it can handle a nullable input.
  * If the input is null, that will be the result.
  */
-fun <I : Any, O : Any> nullable(parse: Parse<I, O>): Parse<I?, O?> =
+inline fun <I : Any, O : Any> nullable(crossinline parse: Parse<I, O>): Parse<I?, O?> =
     { inp ->
         if (inp == null)
             Ok(null)

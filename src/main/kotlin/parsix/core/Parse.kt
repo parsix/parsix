@@ -66,3 +66,9 @@ inline fun <I, O> Parse<I, O>.mapError(
     crossinline f: (ParseError) -> ParseError
 ): Parse<I, O> =
     { inp -> this(inp).mapError(f) }
+
+/**
+ * Adapt parser so that it can handle an input [I]
+ */
+inline fun <T, I, O> Parse<T, O>.adapt(crossinline f: (I) -> T): Parse<I, O> =
+    { inp -> this(f(inp)) }

@@ -28,7 +28,7 @@ internal class ParseEnumKtTest {
     @Test
     fun `it fails on unknown value`() {
         assertEquals(
-            EnumError(setOf("one", "two")),
+            EnumError("unknown", setOf("one", "two")),
             parseEnum<TestEnum>()("unknown")
         )
     }
