@@ -8,10 +8,14 @@ package parsix.core
  */
 inline fun <I, T, O> focusedParse(
     crossinline focus: (I) -> T,
-    crossinline parse: Parse<T, O>,
+    crossinline parse: Parse<T, Any?>,
+    crossinline mapOk: (I) -> O,
     crossinline mapErr: (I, ParseError) -> ParseError,
 ): Parse<I, O> = { inp ->
-    parse(focus(inp)).mapError {
-        mapErr(inp, it)
+    when (val parsed = parse(focus(inp))) {
+        is Ok ->
+            Ok(mapOk(inp))
+        is ParseError ->
+            mapErr(inp, parsed)
     }
 }

@@ -9,7 +9,7 @@ internal class FocusedParseKtTest {
     @Test
     fun `it parses the subsection`() {
         assertEquals(
-            Ok("hello"),
+            Ok("hello@world.com"),
             parseEmailUser("hello@world.com")
         )
     }
@@ -26,6 +26,7 @@ internal class FocusedParseKtTest {
         focusedParse(
             { it.split('@')[0] },
             { if (it.length > 1) Ok(it) else RequiredError },
+            { it },
             ::EmailUserError
         )(inp)
 }
