@@ -1,5 +1,7 @@
 package parsix.core.greedy
 
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import parsix.core.ManyErrors
 import parsix.core.Ok
 import parsix.core.PropError
@@ -7,8 +9,6 @@ import parsix.core.curry
 import parsix.core.parseInto
 import parsix.core.succeed
 import parsix.test.TestError
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 internal class ParseObjKtTest {
     data class TestSrc(val a: String, val b: String)

@@ -1,7 +1,7 @@
 package parsix.core
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 internal class ParseEnumKtTest {
     enum class TestEnum(override val key: String) : ParsableEnum {

@@ -3,7 +3,7 @@ package parsix.core
 /**
  * @see parseKey
  */
-data class KeyError(val key: String, val error: ParseError) : OneError()
+data class KeyError(val key: String, override val error: ParseError) : CompositeError
 
 /**
  * Make a parser that will extract a key from a [Map] and [parse] it.

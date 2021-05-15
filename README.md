@@ -53,8 +53,9 @@ fun storeEmail(email: Email) {
     TODO("store it somewhere")
 }
 ```
-The most important change is that now `storeEmail` expects an `Email` as its argument, hence we cannot pass the raw input directly anymore, but even more importantly, this function doesn't have to do any further check to ensure its input is valid, which is particularly important in large codebase.  
-If we try to remove parse logic, compilation will fail.
+We changed `storeEmail` to require an `Email` as its argument, hence we cannot pass the raw input directly anymore, but even more importantly, this function doesn't have to do any further checks to ensure its input is valid, which is particularly important in large codebase.  
+If we try to remove parse logic, compilation will fail.  
+By using `value class` for our `Email`, we get the best of both worlds: more safety and same performance at runtime as using `String`.
 
 Through [visibility modifiers](https://kotlinlang.org/docs/visibility-modifiers.html) we can ensure that an Email must always be constructed through parsing, so that compiler will force us *do the right thing*. 
 
@@ -93,7 +94,7 @@ Given that we are working with simple data types, possibilities for abstraction 
 
 - **Simple**: developers should be able to understand the overall implementation by jumping through functions and reading our code.
 
-- **Explicit**: we prefer making code explicit and to hide only what makes sense; we are not afraid of making code a little more verbose if it helps avoid mistakes.
+- **Explicit**: we prefer to make code explicit and to hide only what makes sense; we are not afraid of a little more verbose code if it helps avoid mistakes.
 
 ## Build your own Parse
 Parsix focus on composition and extension, therefore coming up with a new parser is as straightforward as implementing the following function:
@@ -104,7 +105,7 @@ fun <I, O> parse(input: I): Parsed<I, O>
 ```
 The `Parse` we used in previous example is just a typealias over it.
 
-### What is a Parsed?
+### What is Parsed?
 Parsed is a sealed class, it models our parse result and can have only two shapes:
  * `Ok(value)` models the success case
  * `ParseFailure` another sealed class, models the failure case
@@ -116,13 +117,13 @@ Given that each business domain is different from one another, Parsix offers onl
 
 Let's say we have `Age` concept and we want to ensure that in a particular flow only adults (Age >= 18) can enter it:
 ```kotlin
-import parsix.core.OneError
+import parsix.core.TerminalError
 import parsix.core.Parsed
 
 data class Age(val value: UInt)
 
 data class AdultAge(val value: UInt)
-data class NotAdultError(val inp: Age) : OneError()
+data class NotAdultError(val inp: Age) : TerminalError
 
 fun parseAdultAge(inp: Age): Parsed<AdultAge> =
     if (inp.value >= 18)
@@ -131,8 +132,10 @@ fun parseAdultAge(inp: Age): Parsed<AdultAge> =
         NotAdultError(inp)
 ```
 
-Implementing new parse function is quite simple and straightforward, that's all it needs.
+Implementing new parse function is quite simple and straightforward, that's all there is.
 This also shows that you can parse any kind of data, doesn't have to be a primitive type.
+
+It is worth mentioning that errors are first class citizens in Parsix: each parser should return a specific ParseError type and capture the overall context in a way that allow us to create very informative error messages for our customers. The good part is that it's the library user that will decide which will be the final format.
 
 ### Parse Enum
 We have a specific parser capable of parsing any Enum, as long as it implements `ParsableEnum` interface.
@@ -156,7 +159,7 @@ Let's say in our domain we need to work with Name, it must be a string and it ha
 import parsix.core.Parsed
 import parsix.core.Ok
 import parsix.core.ParseError
-import parsix.core.OneError
+import parsix.core.TerminalError
 import parsix.core.parseBetween
 
 /** Make it type-safe to use this value after parsing */
@@ -164,11 +167,10 @@ import parsix.core.parseBetween
 value class Name(val raw: String)
 
 /** Model our new error for better error messages */
-data class NameError(val inp: String, val err: ParseError) : OneError()
-parse
+data class NameError(val inp: String, override val error: ParseError) : CompositeError
 
-/** Make a parse for our length, according to business logic */
-val parseLength = parseBetween(3, 255)
+/** Make a new Parse that will parse length according to business logic */
+val parseLength: Parse<Int, Int> = parseBetween(3, 255)
 
 fun parseName(inp: String): Parsed<Name> =
     when (parsed = parseLength(inp.length)) {
@@ -253,7 +255,7 @@ When using `parseInto`, we can have an error at each step. Some applications wou
 
 For this reason we offer two different set of extension functions, you can find them in [parsix.core.greedy](/src/main/kotlin/parsix/core/lazy) and [parsix.core.lazy](/src/main/kotlin/parsix/core/lazy).
 
-The greedy versions have no prefix and will greedily collect errors, will not stop and instead try to gather as many errors as possible. In case we have more than one failure, the result will be `ManyErrors`.
+The greedy versions have no prefix and will greedily collect errors, will not stop after a failure and instead try to gather as many errors as possible. In case we have more than one failure, the result will be `ManyErrors`.
 
 The lazy versions are prefixed with `lazy` and will short-circuit execution as soon as they fail. They are more efficient and should be preferred when we need fast feedback or to skip particularly expensive operations.
 
@@ -266,7 +268,7 @@ parseInto(::SomeData.curry())
 ```
 In this case, execution will be `c -> b -> a`:
 * `c` will run first and execute the next parser even if parsing fails, but that's fine because `b` is also fast
-* `b` will then run, however because this is lazy, it will stop immediately in case of failure. This is nice because our next parse will be quite slow
+* `b` will always run, however because this is lazy, it will stop immediately in case of failure. This is nice because our next parse will be quite slow
 * `a` is the last parse to run, it doesn't matter if it's greedy or lazy
 
 Therefore, in case all parsers fail, we will only collect errors from `c` and `b`.
@@ -307,7 +309,11 @@ val parseAttribute: ParseMap<Attribute> = parseKey("type", parseType)
     }
 ```
 `parseKey` is a low-level operator that creates a `Parse` that lookup the given `key` in input Map and parse it.
-The result of `evalThen` must be another `Parse` that receives the same `input` as the initial `Parse`, so in this case it will be a Map.
+The result of `evalThen` must be another `Parse` that receives the same `input` as the initial `Parse`, so in this case it will be a Map. The result is a normal parse and can be used as usual:
+```kotlin
+parseAttribute(attrInt) // is an IntAttribute
+parseAttribute(attrStr) // is a StrAttribute
+```
 
 By transforming a `type` into `AttrType` first and by using `when`, the compiler will complain in case we add a new type but don't update this code.  
 Always use `when` with enums and sealed classes to make your code easy to maintain.
@@ -317,7 +323,7 @@ Please note that `evalThen` can work with any parser, it doesn't have to be an e
 ### Combine Parses
 We value composability, so everything can compose, including our `Parse`, we have a handy extension function for that.
 
-Suppose we need to parse `SomeEnum`, however our initial input can be `Any`. In this case we can't just use `parseEnum` because it requires a `String` as input. Thankfully we already have a way to parse `Any` to a `String`, `parseString`.  
+Suppose we need to parse `SomeEnum`, however our initial input is `Any`. In this case we can't just use `parseEnum` because it requires a `String` as input. Thankfully we already have a way to parse `Any` to a `String`, `parseString`.  
 Let's glue them together:
 ```kotlin
 val parseEnumFromAny: Parse<Any, SomeEnum> =
@@ -327,10 +333,49 @@ This reads quite naturally and should be clear what it does: parse the input and
 
 This operator is an infix one, so we can remove some parentheses if you prefer:
 ```kotlin
-val parseEnumFromAny: Parse<Any, SomeEnum> =
+val parseEnumFromAny =
     ::parseString then parseEnum<SomeEnum>()
 ```
 
 Composing smaller, simpler parsers is our preferred style, it will increase code reusability and make overall codebase cleaner.
 
 Please have a look at [common parsers](/src/main/kotlin/parsix/core/CommonParsers.kt) to see what's available.
+
+## Handling Errors
+All errors returned by this library and its extensions must be informative and capture all the context needed to create top-notch error messages.
+
+We are well aware that business domains are quite different from one another, that's why we decided to provide an extensible hierarchy for errors, while still constraining it for a nice dev experience.
+
+The bottom type for parse errors is `ParseError`, which is a sealed interface and can have 3 shapes:
+- **TerminalError** is an open interface that models an error that has all information you need to generate an error message out of it, such as `RequiredError`
+
+- **CompositeError** is an open interface that models an error that wraps other errors and give them more structure, like `PropError`.
+
+- **ManyErrors** is a final class that models a collection of errors, useful for greedy parsers.
+
+### String error handler
+Out of the box we provide only an error handler capable of translating all errors packaged in `parsix.core` into a list of messages suitable to display to English-speaking customers.
+
+However errors are extensible and we encourage library users to create new errors specific to their business domain.
+That's why users must provide two extension functions to get the error handler. In its simplest form, we can just provide a default value for unknown errors:
+```kotlin
+import parsix.core.makeStringErrorHandler
+
+val myHandler = makeStringErrorHandler(
+    { "Unknown error, something went wrong" },
+    { "Unknown" },
+)
+```
+The first lamba will receive a `TerminalError` that we weren't able to parse and should return a suitable error message for it.  
+The second lambda instead will receive a `CompositeError` that we weren't able to parse and should return a suitable message to be used as a prefix, we will then recursively parse the wrapped error and construct a final message like: `"$prefix: $message"`.
+```kotlin
+import parsix.core.RequiredError
+import parsix.core.TerminalError
+import parsix.core.CompositeError
+
+data class MyTerminalError : TerminalError
+data class MyCompositeError(override val error: ParseError) : CompositeError
+
+myHandler(MyTerminalError()) == listOf("Unknown error, something went wrong")
+myHandler(MyCompositeError(RequiredError)) == listOf("Unknown: Required value")
+```

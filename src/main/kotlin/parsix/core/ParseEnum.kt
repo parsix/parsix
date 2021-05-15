@@ -12,7 +12,7 @@ interface ParsableEnum {
 /**
  * @see parseEnum
  */
-data class EnumError(val value: String, val expected: Set<String>) : OneError()
+data class EnumError(val inp: String, val expected: Set<String>) : TerminalError
 
 /**
  * Make a `parse` for Enum [T].

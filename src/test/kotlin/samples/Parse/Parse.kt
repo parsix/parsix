@@ -1,6 +1,6 @@
 package samples.Parse
 
-import parsix.core.OneError
+import parsix.core.CompositeError
 import parsix.core.ParsableEnum
 import parsix.core.Parse
 import parsix.core.ParseError
@@ -21,7 +21,7 @@ internal fun mapExample() {
 }
 
 internal fun mapErrorExample() {
-    data class AdultError(val error: ParseError) : OneError()
+    data class AdultError(override val error: ParseError) : CompositeError
 
     val parseAdult: Parse<Any, Int> =
         ::parseInt.then(parseMin(18)).mapError(::AdultError)

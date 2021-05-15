@@ -6,7 +6,7 @@ package parsix.core
  * @see Ok
  * @see ParseError
  */
-sealed class Parsed<out T>
+sealed interface Parsed<out T>
 
 /**
  * Transform a successful result into another [Parsed]
@@ -50,22 +50,29 @@ inline fun <T> Parsed<T>.mapError(
 /**
  * Model the successful case
  */
-data class Ok<T>(val value: T) : Parsed<T>()
+data class Ok<T>(val value: T) : Parsed<T>
 
 /**
  * Base class for modeling the failure case
  */
-sealed class ParseError : Parsed<Nothing>()
+sealed interface ParseError : Parsed<Nothing>
 
 /**
- * This error will be extended by all the other errors
+ * This error will be implemented by all the other errors
  */
-abstract class OneError : ParseError()
+interface TerminalError : ParseError
+
+/**
+ * This error will be implemented by all errors that wrap other errors
+ */
+interface CompositeError : ParseError {
+    val error: ParseError
+}
 
 /**
  * Model a collection of errors.
  */
-class ManyErrors(errors: Set<ParseError>) : ParseError() {
+class ManyErrors(errors: Set<ParseError>) : ParseError {
     private val errors = errors.toMutableSet()
 
     /**
@@ -74,13 +81,17 @@ class ManyErrors(errors: Set<ParseError>) : ParseError() {
      * @return self
      */
     fun add(err: ParseError): ParseError = this.also {
-        when (err) {
-            is OneError ->
+        // this assignment ensures `when` will complain in case there is a missing branch
+        val x = when (err) {
+            is TerminalError, is CompositeError  ->
                 this.errors.add(err)
             is ManyErrors ->
                 this.errors.addAll(err.errors)
         }
     }
+
+    fun unwrap(): Set<ParseError> =
+        this.errors
 
     override fun equals(other: Any?): Boolean {
         if (this === other) {
@@ -113,9 +124,9 @@ class ManyErrors(errors: Set<ParseError>) : ParseError() {
 
 fun combineErrors(a: ParseError, b: ParseError): ParseError =
     when (a) {
-        is OneError ->
+        is TerminalError, is CompositeError ->
             when (b) {
-                is OneError ->
+                is TerminalError, is CompositeError ->
                     ManyErrors(setOf(a, b))
 
                 is ManyErrors ->

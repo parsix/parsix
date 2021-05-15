@@ -9,7 +9,7 @@ fun <I, O> succeed(result: O): Parse<I, O> =
 /**
  * @see notNullable
  */
-object RequiredError : OneError()
+object RequiredError : TerminalError
 
 /**
  * Enhance [parse] so that it can handle a nullable input.
@@ -67,7 +67,7 @@ fun parseBool(inp: Any): Parsed<Boolean> =
 /**
  * @see parseTyped
  */
-data class TypedError(val inp: Any, val type: String) : OneError()
+data class TypedError(val inp: Any, val type: String) : TerminalError
 
 /**
  * Generic parser, it can be used to easily convert from [Any] to a specific type [T]
@@ -82,7 +82,7 @@ inline fun <reified T> parseTyped(inp: Any, type: String): Parsed<T> =
 /**
  * @see parseMin
  */
-data class MinError<T : Comparable<T>>(val inp: Any, val min: T) : OneError()
+data class MinError<T : Comparable<T>>(val inp: Any, val min: T) : TerminalError
 
 /**
  * Make a `parse` that ensures a [Comparable] is greater than or equal to [min]
@@ -106,7 +106,7 @@ fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
 /**
  * @see parseMax
  */
-data class MaxError<T : Comparable<T>>(val inp: Any, val max: T) : OneError()
+data class MaxError<T : Comparable<T>>(val inp: Any, val max: T) : TerminalError
 
 /**
  * Make a `parse` that ensures a [Comparable] is less a than or equal to [max]
@@ -131,7 +131,7 @@ data class BetweenError<T : Comparable<T>>(
     val inp: Any,
     val min: T,
     val max: T
-) : OneError()
+) : TerminalError
 
 /**
  * Make a `parse` that ensures [Comparable] is between [min] and [max], inclusive,
@@ -156,7 +156,7 @@ fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
 /**
  * @see [parseInt]
  */
-data class IntError(val inp: Any) : OneError()
+data class IntError(val inp: Any) : TerminalError
 
 /**
  * Parse an [Any] into a [Int].
@@ -206,7 +206,7 @@ fun parseInt(inp: Any): Parsed<Int> =
 /**
  * @see [parseUInt]
  */
-data class UIntError(val inp: Any) : OneError()
+data class UIntError(val inp: Any) : TerminalError
 
 /**
  * Parse an [Any] into a [UInt].
@@ -255,7 +255,7 @@ fun parseUInt(inp: Any): Parsed<UInt> =
 /**
  * @see [parseLong]
  */
-data class LongError(val inp: Any) : OneError()
+data class LongError(val inp: Any) : TerminalError
 
 /**
  * Parse an [Any] into a [Long].
@@ -297,7 +297,7 @@ fun parseLong(inp: Any): Parsed<Long> =
 /**
  * @see [parseDouble]
  */
-data class DoubleError(val inp: Any) : OneError()
+data class DoubleError(val inp: Any) : TerminalError
 
 /**
  * Parse an [Any] into a [Double].

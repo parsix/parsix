@@ -7,8 +7,8 @@ import kotlin.reflect.KProperty1
  */
 data class PropError<K, P>(
     val prop: KProperty1<K, P>,
-    val error: ParseError,
-) : OneError()
+    override val error: ParseError,
+) : CompositeError
 
 /**
  * Make a parser that will extract a prop from an object [I] and [parse] it.

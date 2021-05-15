@@ -1,10 +1,13 @@
 package parsix.core
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 internal class FocusedParseKtTest {
-    data class EmailUserError(val inp: String, val error: ParseError) : OneError()
+    data class EmailUserError(
+        val inp: String,
+        override val error: ParseError
+    ) : CompositeError
 
     @Test
     fun `it parses the subsection`() {

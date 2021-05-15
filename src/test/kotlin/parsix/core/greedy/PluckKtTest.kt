@@ -1,13 +1,13 @@
 package parsix.core.greedy
 
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import parsix.core.ManyErrors
 import parsix.core.Ok
 import parsix.core.curry
 import parsix.core.parseInto
 import parsix.core.succeed
 import parsix.test.TestError
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 internal class PluckKtTest {
     data class TestData(val a: Int, val b: String)

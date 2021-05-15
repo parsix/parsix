@@ -1,5 +1,7 @@
 package parsix.core.lazy
 
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import parsix.core.KeyError
 import parsix.core.Ok
 import parsix.core.RequiredError
@@ -10,8 +12,6 @@ import parsix.core.parseString
 import parsix.core.succeed
 import parsix.test.TestError
 import parsix.test.neverCalled
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 internal class ParseMapKtTest {
     data class TestData(val a: String, val b: Int?)
