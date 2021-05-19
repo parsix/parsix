@@ -3,6 +3,7 @@ package parsix.core.lazy
 import parsix.core.Ok
 import parsix.core.Parse
 import parsix.core.ParseError
+import parsix.core.Parsed
 
 /**
  * This is the building block for complex data structures.
@@ -27,15 +28,28 @@ import parsix.core.ParseError
  */
 fun <I, A, B> Parse<I, (A) -> B>.lazyPluck(parse: Parse<I, A>): Parse<I, B> =
     { inp ->
-        when (val parsed = parse(inp)) {
-            is Ok ->
-                when (val pf = this(inp)) {
-                    is Ok ->
-                        Ok(pf.value(parsed.value))
-                    is ParseError ->
-                        pf
-                }
-            is ParseError ->
-                parsed
-        }
+        lift2(parse(inp), { this(inp) }) { a, f -> Ok(f(a)) }
+    }
+
+@JvmName("lazyFlatPluck")
+fun <I, A, B> Parse<I, (A) -> Parsed<B>>.lazyPluck(parse: Parse<I, A>): Parse<I, B> =
+    { inp ->
+        lift2(parse(inp), { this(inp) }) { a, f -> f(a) }
+    }
+
+inline fun <A, B, O> lift2(
+    pa: Parsed<A>,
+    lazyB: () -> Parsed<B>,
+    crossinline f: (A, B) -> Parsed<O>
+): Parsed<O> =
+    when (pa) {
+        is Ok ->
+            when (val pb = lazyB()) {
+                is Ok ->
+                    f(pa.value, pb.value)
+                is ParseError ->
+                    pb
+            }
+        is ParseError ->
+            pa
     }

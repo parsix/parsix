@@ -1,6 +1,7 @@
 package parsix.core.lazy
 
 import parsix.core.Parse
+import parsix.core.Parsed
 import parsix.core.notNullable
 import parsix.core.nullable
 import parsix.core.parseProp
@@ -17,7 +18,14 @@ import kotlin.reflect.KProperty1
  * @see parsix.core.parseInto
  * @see parsix.core.parseProp
  */
-fun <I, P, A, B> Parse<I, (A) -> B>.pluckProp(
+fun <I, P, A, B> Parse<I, (A) -> B>.lazyPluckProp(
+    prop: KProperty1<I, P>,
+    parse: Parse<P, A>
+): Parse<I, B> =
+    this.lazyPluck(parseProp(prop, parse))
+
+@JvmName("flatPluckProp")
+fun <I, P, A, B> Parse<I, (A) -> Parsed<B>>.lazyPluckProp(
     prop: KProperty1<I, P>,
     parse: Parse<P, A>
 ): Parse<I, B> =
@@ -38,7 +46,14 @@ fun <I, P : Any, A : Any, B> Parse<I, (A) -> B>.lazyRequired(
     prop: KProperty1<I, P?>,
     parse: Parse<P, A>
 ): Parse<I, B> =
-    this.pluckProp(prop, notNullable(parse))
+    this.lazyPluckProp(prop, notNullable(parse))
+
+@JvmName("lazyFlatRequired")
+fun <I, P : Any, A : Any, B> Parse<I, (A) -> Parsed<B>>.lazyRequired(
+    prop: KProperty1<I, P?>,
+    parse: Parse<P, A>
+): Parse<I, B> =
+    this.lazyPluckProp(prop, notNullable(parse))
 
 /**
  * When [prop] is nullable, it will just provide [null] as an argument, otherwise it
@@ -55,7 +70,14 @@ fun <I, P : Any, A : Any, B> Parse<I, (A?) -> B>.lazyOptional(
     prop: KProperty1<I, P?>,
     parse: Parse<P, A>
 ): Parse<I, B> =
-    this.pluckProp(prop, nullable(parse))
+    this.lazyPluckProp(prop, nullable(parse))
+
+@JvmName("lazyFlatOptional")
+fun <I, P : Any, A : Any, B> Parse<I, (A?) -> Parsed<B>>.lazyOptional(
+    prop: KProperty1<I, P?>,
+    parse: Parse<P, A>
+): Parse<I, B> =
+    this.lazyPluckProp(prop, nullable(parse))
 
 /**
  * When [prop] is nullable, it will just provide [default] as an argument, otherwise it
@@ -73,4 +95,12 @@ fun <I, P : Any, A : Any, B> Parse<I, (A) -> B>.lazyOptional(
     default: A,
     parse: Parse<P, A>
 ): Parse<I, B> =
-    this.pluckProp(prop, nullable(default, parse))
+    this.lazyPluckProp(prop, nullable(default, parse))
+
+@JvmName("lazyFlatOptional")
+fun <I, P : Any, A : Any, B> Parse<I, (A) -> Parsed<B>>.lazyOptional(
+    prop: KProperty1<I, P?>,
+    default: A,
+    parse: Parse<P, A>
+): Parse<I, B> =
+    this.lazyPluckProp(prop, nullable(default, parse))

@@ -30,7 +30,7 @@ fun storeEmail(email: String) {
 We know that at business level `storeEmail` must receive an e-mail, however our compiler is unaware of it and in fact we can remove `assertEmail` and it will happily compile it successfully.
 
 ## How we solve it
-Instead of *just* validating, we should instead **parse** the input into a shape that makes the compiler aware of what we want to do.
+Instead of *just* validating, we should **parse** the input into a shape that makes the compiler aware of what we want to do.
 In Parsix, the previous example would become:
 ```kotlin
 import parsix.core.Parse
@@ -38,7 +38,9 @@ import parsix.core.Parse
 @JvmInline
 value class Email(val email: String)
 
-val parseEmail: Parse<String, Email>
+val parseEmail: Parse<String, Email> =
+    TODO("implement parser")
+
 fun storeEmailEndpoint(inp: String) {
     when (val parsed = parseEmail(inp)) {
         is Ok ->
@@ -57,7 +59,7 @@ We changed `storeEmail` to require an `Email` as its argument, hence we cannot p
 If we try to remove parse logic, compilation will fail.  
 By using `value class` for our `Email`, we get the best of both worlds: more safety and same performance at runtime as using `String`.
 
-Through [visibility modifiers](https://kotlinlang.org/docs/visibility-modifiers.html) we can ensure that an Email must always be constructed through parsing, so that compiler will force us *do the right thing*. 
+Through [visibility modifiers](https://kotlinlang.org/docs/visibility-modifiers.html) we can ensure that an Email must always be constructed through parsing, so that compiler will force us *do the right thing*. Check [Recommended Style](#recommended-style) for more on this topic.
 
 Please notice that if we want to get access to `Email` after parsing, we are forced to evaluate it and explicitly handle the failure case.
 
@@ -73,7 +75,7 @@ fun <T> handleParsed(parsed: Parsed<T>, happyCase: (T) -> Response): Response =
     }
 ```
 
-Then you can use this code in all your endpoints:
+Then you can use it in all your endpoints:
 ```kotlin
 fun storeEmailEndpoint(inp: String): Response = 
     handleParsed(parseEmail(inp)) {
@@ -88,13 +90,40 @@ Given that we are working with simple data types, possibilities for abstraction 
 ## Library core values
 - **Do the right thing**: as library authors, we strive to make best-practices easy to follow and foster a culture that sees the compiler as an invaluable friend, rather than a foe.
 
-- **Composable**: people can only handle a certain amount of information at a time, the lower the better. That's why is important to decompose problems into smaller, digestible solutions and then put all of them together to efficiently solve the main issue.
+- **Composable**: people can only handle a certain amount of information at a time, hence we will have better results and fewer mistakes if we keep it low. That's why is important to decompose problems into smaller, digestible solutions and then put all of them together to efficiently solve the main issue.
 
 - **Extensible**: we want our users to be able to extend our library and bend it in a way that fit their problems, not the other way around.
 
 - **Simple**: developers should be able to understand the overall implementation by jumping through functions and reading our code.
 
 - **Explicit**: we prefer to make code explicit and to hide only what makes sense; we are not afraid of a little more verbose code if it helps avoid mistakes.
+
+## Terminology
+We would like to make sure we are on the same page when using certain terms:
+- **Validation**: check if some piece of data satisfy a set of constraints.  
+ Examples: Object is String, Integer is less than 100, String is a valid e-mail.
+ 
+- **Assertion**: a strong kind of validation, it will stop execution if the condition isn't met.
+
+- **Data parsing**: try to transform a particular piece of data into something more refined. This process can fail, but when it succeeds it will increase our knowledge about our data. We refer to this as just "parsing".  
+ Examples: Stream<Byte> to JSON, String to Email, Name to FirstName
+ 
+- **Deserialization**: a specific form of parsing which usually go from a low-level data representation suitable for storage or transmission, to a more high level one.  
+ Examples: HTTP Request Body to UserForm, SQLRow to UserModel
+
+- **Sanitization**: clean up data so that they are free of harms. This is another specific form of parsing, one that always succeed and is very effective in preventing common software exploitations, like the infamous [SQL Injections](https://owasp.org/www-community/attacks/SQL_Injection) and [Cross Site Scripting](https://owasp.org/www-community/attacks/xss/).  
+Examples: String to HTML, String to SQLString
+ 
+ As you may see, data parsing will also need to inspect data and ensure satisfy all constraints required by the more refined types, which is very similar to what validation does. The two processes are indeed related and we could consider parsing as a super-set of validation, in fact `validate` can always be implemented in terms of an equivalent `parse`:
+ ```kotlin
+val parseEmail: Parse<String, Email>
+
+fun validateEmail(str: String): bool =
+    when (parseEmail(str)) {
+        is Ok -> true
+        is ParseError -> false
+    }
+```
 
 ## Build your own Parse
 Parsix focus on composition and extension, therefore coming up with a new parser is as straightforward as implementing the following function:
@@ -106,11 +135,11 @@ fun <I, O> parse(input: I): Parsed<I, O>
 The `Parse` we used in previous example is just a typealias over it.
 
 ### What is Parsed?
-Parsed is a sealed class, it models our parse result and can have only two shapes:
+Parsed is a sealed interface, it models our parse result and can only have two shapes:
  * `Ok(value)` models the success case
- * `ParseFailure` another sealed class, models the failure case
+ * `ParseFailure` another sealed interface, models the failure case
 
-If you are familiar with functional programming, this type is a specialised type of `Result` (also known as `Either`).
+If you are familiar with functional programming, this type is a specialised `Result` (also known as `Either`).
 
 ### A simple parse
 Given that each business domain is different from one another, Parsix offers only low level parsers and combinators that makes it easy to implement more complex ones.
@@ -120,9 +149,11 @@ Let's say we have `Age` concept and we want to ensure that in a particular flow 
 import parsix.core.TerminalError
 import parsix.core.Parsed
 
-data class Age(val value: UInt)
+@JvmInline
+value class Age(val value: UInt)
 
-data class AdultAge(val value: UInt)
+@JvmInline
+value class AdultAge(val value: UInt)
 data class NotAdultError(val inp: Age) : TerminalError
 
 fun parseAdultAge(inp: Age): Parsed<AdultAge> =
@@ -203,8 +234,10 @@ The benefit of using this combinator is to guide the library user towards the ri
 Parsing a single value is ok, but more often we will need to build types that require more than one element. For example:
 ```kotlin
 data class User(val name: Name, val age: Age)
-data class Name(val value: String)
-data class Age(val value: UInt)
+@JvmInline
+value class Name(val value: String)
+@JvmInline
+value class Age(val value: UInt)
 ```
 Suppose we will ingest data from a CSV and each row will be a `Map<String, String>` like:
 ```kotlin
@@ -379,3 +412,95 @@ data class MyCompositeError(override val error: ParseError) : CompositeError
 myHandler(MyTerminalError()) == listOf("Unknown error, something went wrong")
 myHandler(MyCompositeError(RequiredError)) == listOf("Unknown: Required value")
 ```
+
+## Recommended Style
+When using this library you are free and encouraged to experiment, to come up with your own ways. Nonetheless, we would like to recommend a style that works quite well for us.
+We recommend this style especially if you are working in a large codebase with many contributors.
+
+Our main goal is to make mistakes less likely to happen, use the compiler to both guide implementation and remind us to not be too lazy :)
+
+The main idea is that all inputs must be checked and sanitized as close as the source as possible, while business logic should consume well structured data.
+
+Imagine we want to implement a Signup form in a web server and that we receive raw JSON data:
+ ```
+{
+  "email": String,
+  "password": String,
+  "verifyPassword": String
+}
+```
+
+Small disclaimer about code: we will omit all imports for simplicity sakes.  
+In this case we would deserialize the incoming request data into a `Map<String, Any?>`, then:
+```kotlin
+package app.http.signup
+
+fun signupEndpoint(request: Map<String, Any?>): Response {
+    when (val parsed = Signup.parse(request)) {
+        is Ok ->
+            signup(parsed.value)
+            response(HttpStatus.Created)
+        is ParseError ->
+            parseFailureResponse(parsed)
+    }
+}
+
+fun parseFailureResponse(err: ParseError): Reponse =
+    TODO("implement error handling")
+```
+As for the first principle, we are immediately parsing our request and exit immediately with a response error if something went wrong. Due to the shape of Parsed, the compiler is helping us remember to handle the error branch, no other way around it!
+We are then forwarding to `signup` business logic the fully parsed and valid object, making it more lean and robust.
+
+Let's look more closely at `signup`:
+```kotlin
+package app.feature.signup
+
+fun signup(data: Signup) =
+    TODO("signup our customer")
+
+class PasswordDoesntMatchError : TerminalError
+data class Signup private constructor(val email: Email, val password: Password) {
+    companion object {
+        val parse: ParseMap<Signup>
+            get() = parseInto(this::buildFromReq.curry())
+                .required("email", Email.parse)
+                .required("pass", Password.parse)
+                .required("pass_verify", ::parseString)
+
+        private fun buildFromReq(
+            email: Email,
+            password: Password, verify: String
+        ): Parsed<Signup> =
+            if (verify == pass.unwrap)
+                Ok(Signup(email, pass))
+            else
+                PasswordDoesntMatchError()
+    }
+}
+```
+We have created a new data class for our feature and set the main constructor to private, therefore we can build an instance of Signup if and only if we use `Signup.parse`.
+By protecting the constructor, the compiler will prevent us from mistakenly pass around values that haven't been properly parsed, so we have to *do the right thing*.
+
+In previous examples we always used constructors reference with `parseInto`, but that's just convention. Another aspect worth mentioning is that `parseInto` is capable of handling a `Parsed` result, which makes it pretty easy to compare passwords.
+
+Let's have a look at `Email`:
+```kotlin
+package app.domain
+
+@JvmInline
+value class Email private constructor(val unwrap: String) {
+    companion object {
+        val parse: Parse<String, Email>
+            get() = TODO("implement parser")
+
+        fun buildForTest(val email: String) =
+            Email(email)
+    }
+}
+```
+Email is a general concept and that's why is in `app.domain` package. Because it is generic, we will need it for testing and that's why we have `Email.buildForTest`, which may look controversial, but also shows us another benefit of this pattern: *by separating validation logic from constructors, we can build the object according to our use case and make our intent explicit*.  
+As it is clear by the name, that method is only meant for tests and it will be pretty easy to spot any illegal usage of it through code review. That's good enough for almost all projects, but we could make it bullet proof through a custom linting rule.
+
+Password will look very similar, we will skip it.
+
+In our example we used a `companion object`, but perhaps you would prefer a Factory instead. As usual, this is just an example and even if you decide to adopt this style, please tweak it based on your project needs! ;)

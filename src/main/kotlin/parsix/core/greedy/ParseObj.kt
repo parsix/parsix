@@ -1,6 +1,7 @@
 package parsix.core.greedy
 
 import parsix.core.Parse
+import parsix.core.Parsed
 import parsix.core.notNullable
 import parsix.core.nullable
 import parsix.core.parseProp
@@ -17,6 +18,13 @@ import kotlin.reflect.KProperty1
  * @see parsix.core.parseProp
  */
 fun <I, P, A, B> Parse<I, (A) -> B>.pluckProp(
+    prop: KProperty1<I, P>,
+    parse: Parse<P, A>
+): Parse<I, B> =
+    this.greedyPluck(parseProp(prop, parse))
+
+@JvmName("flatPluckProp")
+fun <I, P, A, B> Parse<I, (A) -> Parsed<B>>.pluckProp(
     prop: KProperty1<I, P>,
     parse: Parse<P, A>
 ): Parse<I, B> =
@@ -39,6 +47,13 @@ fun <I, P : Any, A : Any, B> Parse<I, (A) -> B>.required(
 ): Parse<I, B> =
     this.pluckProp(prop, notNullable(parse))
 
+@JvmName("flatRequired")
+fun <I, P : Any, A : Any, B> Parse<I, (A) -> Parsed<B>>.required(
+    prop: KProperty1<I, P?>,
+    parse: Parse<P, A>
+): Parse<I, B> =
+    this.pluckProp(prop, notNullable(parse))
+
 /**
  * When [prop] is nullable, it will just provide [null] as an argument, otherwise it
  * will [parse] the returned value.
@@ -56,6 +71,13 @@ fun <I, P : Any, A : Any, B> Parse<I, (A?) -> B>.optional(
 ): Parse<I, B> =
     this.pluckProp(prop, nullable(parse))
 
+@JvmName("flatOptional")
+fun <I, P : Any, A : Any, B> Parse<I, (A?) -> Parsed<B>>.optional(
+    prop: KProperty1<I, P?>,
+    parse: Parse<P, A>
+): Parse<I, B> =
+    this.pluckProp(prop, nullable(parse))
+
 /**
  * When [prop] is nullable, it will just provide [default] as an argument, otherwise it
  * will [parse] the returned value.
@@ -68,6 +90,14 @@ fun <I, P : Any, A : Any, B> Parse<I, (A?) -> B>.optional(
  * @see parsix.core.nullable
  */
 fun <I, P : Any, A : Any, B> Parse<I, (A) -> B>.optional(
+    prop: KProperty1<I, P?>,
+    default: A,
+    parse: Parse<P, A>
+): Parse<I, B> =
+    this.pluckProp(prop, nullable(default, parse))
+
+@JvmName("flatDefault")
+fun <I, P : Any, A : Any, B> Parse<I, (A) -> Parsed<B>>.optional(
     prop: KProperty1<I, P?>,
     default: A,
     parse: Parse<P, A>

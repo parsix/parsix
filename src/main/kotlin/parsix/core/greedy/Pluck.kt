@@ -3,6 +3,7 @@ package parsix.core.greedy
 import parsix.core.Ok
 import parsix.core.Parse
 import parsix.core.ParseError
+import parsix.core.Parsed
 import parsix.core.combineErrors
 
 /**
@@ -18,21 +19,33 @@ import parsix.core.combineErrors
  */
 fun <I, A, B> Parse<I, (A) -> B>.greedyPluck(parse: Parse<I, A>): Parse<I, B> =
     { inp ->
-        val pf = this(inp)
-        when (val parsed = parse(inp)) {
-            is Ok ->
-                when (pf) {
-                    is Ok ->
-                        Ok(pf.value(parsed.value))
-                    is ParseError ->
-                        pf
-                }
-            is ParseError ->
-                when (pf) {
-                    is Ok ->
-                        parsed
-                    is ParseError ->
-                        combineErrors(pf, parsed)
-                }
-        }
+        lift2(this(inp), parse(inp)) { f, a -> Ok(f(a)) }
+    }
+
+@JvmName("greedyFlatPluck")
+fun <I, A, B> Parse<I, (A) -> Parsed<B>>.greedyPluck(parse: Parse<I, A>): Parse<I, B> =
+    { inp ->
+        lift2(this(inp), parse(inp)) { f, a -> f(a) }
+    }
+
+inline fun <A, B, O> lift2(
+    pa: Parsed<A>,
+    pb: Parsed<B>,
+    crossinline f: (A, B) -> Parsed<O>
+): Parsed<O> =
+    when (pa) {
+        is Ok ->
+            when (pb) {
+                is Ok ->
+                    f(pa.value, pb.value)
+                is ParseError ->
+                    pb
+            }
+        is ParseError ->
+            when (pb) {
+                is Ok ->
+                    pa
+                is ParseError ->
+                    combineErrors(pa, pb)
+            }
     }

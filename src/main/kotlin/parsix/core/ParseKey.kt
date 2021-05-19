@@ -18,3 +18,17 @@ fun <O> parseKey(
             KeyError(key, it)
         }
     }
+
+@JvmName("parseKeyReq")
+fun <O> parseKey(
+    key: String,
+    parse: Parse<Any, O>
+): Parse<Map<String, Any?>, O> =
+    parseKey(key, notNullable(parse))
+
+@JvmName("parseKeyStr")
+fun <O> parseKey(
+    key: String,
+    parse: Parse<String, O>
+): Parse<Map<String, Any?>, O> =
+    parseKey(key, notNullable(::parseString.then(parse)))

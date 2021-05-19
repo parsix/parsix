@@ -1,13 +1,13 @@
 package parsix.core.greedy
 
 import parsix.core.Parse
+import parsix.core.ParseMap
+import parsix.core.Parsed
 import parsix.core.notNullable
 import parsix.core.nullable
 import parsix.core.parseKey
 import parsix.core.parseString
 import parsix.core.then
-
-typealias ParseMap<O> = Parse<Map<String, Any?>, O>
 
 /**
  * Pluck one argument away from your complex parse builder.
@@ -20,6 +20,10 @@ typealias ParseMap<O> = Parse<Map<String, Any?>, O>
  * @see parsix.core.parseKey
  */
 fun <A, B> ParseMap<(A) -> B>.pluckKey(key: String, parse: Parse<Any?, A>): ParseMap<B> =
+    this.greedyPluck(parseKey(key, parse))
+
+@JvmName("flatPluckKey")
+fun <A, B> ParseMap<(A) -> Parsed<B>>.pluckKey(key: String, parse: Parse<Any?, A>): ParseMap<B> =
     this.greedyPluck(parseKey(key, parse))
 
 /**
@@ -35,6 +39,13 @@ fun <A, B> ParseMap<(A) -> B>.pluckKey(key: String, parse: Parse<Any?, A>): Pars
  */
 @JvmName("genericRequired")
 fun <A : Any, B> ParseMap<(A) -> B>.required(
+    key: String,
+    parse: Parse<Any, A>
+): ParseMap<B> =
+    this.pluckKey(key, notNullable(parse))
+
+@JvmName("flatGenericRequired")
+fun <A : Any, B> ParseMap<(A) -> Parsed<B>>.required(
     key: String,
     parse: Parse<Any, A>
 ): ParseMap<B> =
@@ -58,6 +69,13 @@ fun <A : Any, B> ParseMap<(A) -> B>.required(
 ): ParseMap<B> =
     this.required(key, ::parseString then parse)
 
+@JvmName("flatStringRequired")
+fun <A : Any, B> ParseMap<(A) -> Parsed<B>>.required(
+    key: String,
+    parse: Parse<String, A>
+): ParseMap<B> =
+    this.required(key, ::parseString then parse)
+
 /**
  * In case [key] is not contained in Map or null, it will immediately provide [null] as an
  * argument, otherwise it will [parse] it.
@@ -76,6 +94,13 @@ fun <A : Any, B> ParseMap<(A?) -> B>.optional(
 ): ParseMap<B> =
     this.pluckKey(key, nullable(parse))
 
+@JvmName("flatGenericOptional")
+fun <A : Any, B> ParseMap<(A?) -> Parsed<B>>.optional(
+    key: String,
+    parse: Parse<Any, A>
+): ParseMap<B> =
+    this.pluckKey(key, nullable(parse))
+
 /**
  * In case [key] is not contained in Map or null, it will immediately provide [null] as
  * an argument, otherwise it will [parse] it.
@@ -89,6 +114,13 @@ fun <A : Any, B> ParseMap<(A?) -> B>.optional(
  */
 @JvmName("stringOptional")
 fun <A : Any, B> ParseMap<(A?) -> B>.optional(
+    key: String,
+    parse: Parse<String, A>
+): ParseMap<B> =
+    this.optional(key, ::parseString then parse)
+
+@JvmName("flatStringOptional")
+fun <A : Any, B> ParseMap<(A?) -> Parsed<B>>.optional(
     key: String,
     parse: Parse<String, A>
 ): ParseMap<B> =
@@ -113,6 +145,14 @@ fun <A : Any, B> ParseMap<(A) -> B>.optional(
 ): ParseMap<B> =
     this.pluckKey(key, nullable(default, parse))
 
+@JvmName("flatGenericDefault")
+fun <A : Any, B> ParseMap<(A) -> Parsed<B>>.optional(
+    key: String,
+    default: A,
+    parse: Parse<Any, A>
+): ParseMap<B> =
+    this.pluckKey(key, nullable(default, parse))
+
 /**
  * In case [key] is not contained in Map or null, it will immediately provide [default] as
  * an argument, otherwise it will [parse] it.
@@ -126,6 +166,14 @@ fun <A : Any, B> ParseMap<(A) -> B>.optional(
  */
 @JvmName("stringDefault")
 fun <A : Any, B> ParseMap<(A) -> B>.optional(
+    key: String,
+    default: A,
+    parse: Parse<String, A>
+): ParseMap<B> =
+    this.optional(key, default, ::parseString then parse)
+
+@JvmName("flatStringDefault")
+fun <A : Any, B> ParseMap<(A) -> Parsed<B>>.optional(
     key: String,
     default: A,
     parse: Parse<String, A>
