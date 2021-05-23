@@ -82,6 +82,7 @@ class ManyErrors(errors: Set<ParseError>) : ParseError {
      */
     fun add(err: ParseError): ParseError = this.also {
         // this assignment ensures `when` will complain in case there is a missing branch
+        @Suppress("UNUSED_VARIABLE")
         val x = when (err) {
             is TerminalError, is CompositeError  ->
                 this.errors.add(err)

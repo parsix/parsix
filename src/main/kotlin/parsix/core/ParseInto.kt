@@ -24,7 +24,7 @@ fun <A, B> parseInto(f: (A) -> B): ParseMap<(A) -> B> =
  * @see curry
  */
 fun <T : Any, A, B> parseInto(
-    _typeinference: KClass<T>,
+    @Suppress("UNUSED_PARAMETER") _typeinference: KClass<T>,
     f: (A) -> B
 ): Parse<T, (A) -> B> =
     { _ -> Ok(f) }

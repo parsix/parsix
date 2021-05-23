@@ -6,18 +6,22 @@
 
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin.
-    val kotlinVer = "1.5.0"
-    id("org.jetbrains.dokka") version "1.4.32" //kotlinVer
-    kotlin("jvm") version kotlinVer
+    kotlin("jvm") version "1.5.0"
+    id("org.jetbrains.dokka") version "1.4.32"
 
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
 }
 
 repositories {
-    // Use jcenter for resolving dependencies.
-    // You can declare any Maven/Ivy/file repository here.
     mavenCentral()
+}
+
+sourceSets {
+    create("samples") {
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
+    }
 }
 
 dependencies {
@@ -36,7 +40,7 @@ tasks.dokkaHtml.configure {
     outputDirectory.set(buildDir.resolve("docs"))
     dokkaSourceSets {
         configureEach {
-            samples.from("test/kotlin")
+            samples.from("test/kotlin", "samples/kotlin")
         }
     }
 }
