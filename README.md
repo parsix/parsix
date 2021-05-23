@@ -3,57 +3,24 @@ High level parsing to ensure your input is in the right shape and satisfies all 
 
 It is highly inspired by the work of Alexis King "[Parse, don't validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/)", we recommend reading it even if you are unfamiliar with Haskell.
 
+We have also published a new article specific to Kotlin: [Parse, don't validate in Kotlin](https://pelligra-s.medium.com/parse-dont-validate-in-kotlin-afbac505a04f)
+
 ## What's the problem?
 Any non-trivial program always needs to validate external inputs. In Kotlin ecosystem it's often a mix of deserializing a stream into an object and then validate it satisfies the more complex business constraints.
 Most programs will perform validation in a form like:
-```kotlin
-fun validateEmail(str: String): Bool
-/**
- * @throws IllegalStateException
- */
-fun assertEmail(str: String)
-fun validateEmail(str: String): Validated<String>
+```kotlin:src/samples/readme/validations.kt [2]
 ```
 All of them share a critical flaw: **there is no guarantee our program actually run this validation**.
 
 Consider the following example:
-```kotlin
-fun storeEmailEndpoint(email: String) {
-    assertEmail(email)
-    storeEmail(email)
-}
-
-fun storeEmail(email: String) {
-    TODO("store it somewhere")
-}
+```kotlin:src/samples/readme/problem/storeEmail.kt [3]
 ```
 We know that at business level `storeEmail` must receive an e-mail, however our compiler is unaware of it and in fact we can remove `assertEmail` and it will happily compile it successfully.
 
 ## How we solve it
 Instead of *just* validating, we should **parse** the input into a shape that makes the compiler aware of what we want to do.
 In Parsix, the previous example would become:
-```kotlin
-import parsix.core.Parse
-
-@JvmInline
-value class Email(val email: String)
-
-val parseEmail: Parse<String, Email> =
-    TODO("implement parser")
-
-fun storeEmailEndpoint(inp: String) {
-    when (val parsed = parseEmail(inp)) {
-        is Ok ->
-            storeEmail(parsed.value)
-
-        is ParseError ->
-            TODO("handle failure")
-    }
-}
-
-fun storeEmail(email: Email) {
-    TODO("store it somewhere")
-}
+```kotlin:src/samples/readme/solution/storeEmail.kt [2]
 ```
 We changed `storeEmail` to require an `Email` as its argument, hence we cannot pass the raw input directly anymore, but even more importantly, this function doesn't have to do any further checks to ensure its input is valid, which is particularly important in large codebase.  
 If we try to remove parse logic, compilation will fail.  
@@ -65,23 +32,11 @@ Please notice that if we want to get access to `Email` after parsing, we are for
 
 This may look as more code, but it's quite easy to abstract given that most programs will have a single exit point for their errors.
 For example, if we are working on a Web Server, code may look like:
-```kotlin
-fun <T> handleParsed(parsed: Parsed<T>, happyCase: (T) -> Response): Response =
-    when (parsed) {
-        is Ok ->
-            happyCase(parsed.value)
-        is ParseFailure ->
-            parseFailureToResponse(parsed)
-    }
+```kotlin:src/samples/readme/abstraction/handleParsed.kt [2]
 ```
 
 Then you can use it in all your endpoints:
-```kotlin
-fun storeEmailEndpoint(inp: String): Response = 
-    handleParsed(parseEmail(inp)) {
-        storeEmail(it)
-        okResponse()
-    }
+```kotlin:src/samples/readme/abstraction/storeEmail.kt [2]
 ```
 This is just a simple abstraction and, depending on your codebase, you can make it even better by, for example, handling parsing input at route definition level.
 
