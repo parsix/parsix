@@ -8,7 +8,6 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-          ref: refs/heads/${{ github.head_ref }}
 
       - uses: tokusumi/markdown-embed-code@main
         with:
