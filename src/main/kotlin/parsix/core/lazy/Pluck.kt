@@ -28,16 +28,16 @@ import parsix.core.Parsed
  */
 fun <I, A, B> Parse<I, (A) -> B>.lazyPluck(parse: Parse<I, A>): Parse<I, B> =
     { inp ->
-        lift2(parse(inp), { this(inp) }) { a, f -> Ok(f(a)) }
+        lazyLift2(parse(inp), { this(inp) }) { a, f -> Ok(f(a)) }
     }
 
 @JvmName("lazyFlatPluck")
 fun <I, A, B> Parse<I, (A) -> Parsed<B>>.lazyPluck(parse: Parse<I, A>): Parse<I, B> =
     { inp ->
-        lift2(parse(inp), { this(inp) }) { a, f -> f(a) }
+        lazyLift2(parse(inp), { this(inp) }) { a, f -> f(a) }
     }
 
-inline fun <A, B, O> lift2(
+inline fun <A, B, O> lazyLift2(
     pa: Parsed<A>,
     lazyB: () -> Parsed<B>,
     crossinline f: (A, B) -> Parsed<O>
