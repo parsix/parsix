@@ -10,11 +10,6 @@ interface ParsableEnum {
 }
 
 /**
- * @see parseEnum
- */
-data class EnumError(val inp: String, val expected: Set<String>) : TerminalError
-
-/**
  * Make a `parse` for Enum [T].
  * The returned parse we will match string value against [ParsableEnum.key]
  * and return [EnumError] in case of failure

@@ -25,11 +25,19 @@ private fun stringErrorHandler(
     err: ParseError
 ): List<String> =
     when (err) {
+        is CoreTerminalError ->
+            listOf(oneErrorToString(err))
+
         is TerminalError ->
-            listOf(oneErrorToString(extendTerminal, err))
+            listOf(extendTerminal(err))
 
         is CompositeError -> {
-            val prefix = compositeErrorToPrefix(extendComposite, err)
+            val prefix =
+                if (err is CoreCompositeError)
+                    compositeErrorToPrefix(err)
+                else
+                    extendComposite(err)
+
             stringErrorHandler(extendTerminal, extendComposite, err.error).map {
                 "$prefix: $it"
             }
@@ -40,8 +48,7 @@ private fun stringErrorHandler(
     }
 
 private fun compositeErrorToPrefix(
-    extend: (CompositeError) -> String,
-    err: CompositeError
+    err: CoreCompositeError
 ): String =
     when (err) {
         is KeyError ->
@@ -50,13 +57,12 @@ private fun compositeErrorToPrefix(
         is PropError<*, *> ->
             "Error on property '${err.prop.name}'"
 
-        else ->
-            extend(err)
+        is IndexError ->
+            "Error at index ${err.index}"
     }
 
 private fun oneErrorToString(
-    extend: (TerminalError) -> String,
-    err: TerminalError
+    err: CoreTerminalError
 ): String =
     when (err) {
         is RequiredError ->
@@ -67,17 +73,11 @@ private fun oneErrorToString(
                 "Invalid value `${err.inp}`, please provide one of: $it"
             }
 
-        is TypedError ->
-            "Invalid value, it must be ${err.type}"
+        is StringError ->
+            "Invalid value, it must be a string"
 
-        is MinError<*> ->
-            "Value must be greater than or equal to `${err.min}`, got `${err.inp}`"
-
-        is MaxError<*> ->
-            "Value must be smaller than or equal to `${err.max}`, got `${err.inp}`"
-
-        is BetweenError<*> ->
-            "Value must be between `${err.min}` and `${err.max}`, inclusive, got `${err.inp}`"
+        is BoolError ->
+            "Invalid value, it must be a boolean"
 
         is IntError ->
             "Invalid value, it must be an integer"
@@ -91,6 +91,12 @@ private fun oneErrorToString(
         is DoubleError ->
             "Invalid value, it must be a decimal number"
 
-        else ->
-            extend(err)
+        is MinError<*> ->
+            "Value must be greater than or equal to `${err.min}`, got `${err.inp}`"
+
+        is MaxError<*> ->
+            "Value must be smaller than or equal to `${err.max}`, got `${err.inp}`"
+
+        is BetweenError<*> ->
+            "Value must be between `${err.min}` and `${err.max}`, inclusive, got `${err.inp}`"
     }

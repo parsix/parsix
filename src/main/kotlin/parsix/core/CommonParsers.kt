@@ -7,11 +7,6 @@ fun <I, O> succeed(result: O): Parse<I, O> =
     { _ -> Ok(result) }
 
 /**
- * @see notNullable
- */
-object RequiredError : TerminalError
-
-/**
  * Enhance [parse] so that it can handle a nullable input.
  * The final parser will return [RequiredError] if the input is null.
  */
@@ -52,37 +47,41 @@ inline fun <I : Any, O : Any> nullable(crossinline parse: Parse<I, O>): Parse<I?
 
 /**
  * Parse [Any] into [String].
- * @return [TypedError] in case of failure.
+ * @return [StringError] in case of failure.
  */
 fun parseString(inp: Any): Parsed<String> =
-    parseTyped(inp, "string")
+    when (inp) {
+        is String ->
+            Ok(inp)
+
+        is Number ->
+            Ok(inp.toString())
+
+        is Char ->
+            Ok(inp.toString())
+
+        else ->
+            StringError(inp)
+    }
 
 /**
  * Parse [Any] into [Boolean].
- * @return [TypedError] in case of failure.
+ * @return [BoolError] in case of failure.
  */
 fun parseBool(inp: Any): Parsed<Boolean> =
-    parseTyped(inp, "bool")
-
-/**
- * @see parseTyped
- */
-data class TypedError(val inp: Any, val type: String) : TerminalError
+    parseTyped(inp, ::BoolError)
 
 /**
  * Generic parser, it can be used to easily convert from [Any] to a specific type [T]
- * @return [TypedError] in case of failure
  */
-inline fun <reified T> parseTyped(inp: Any, type: String): Parsed<T> =
+inline fun <reified T> parseTyped(
+    inp: Any,
+    crossinline mkErr: (Any) -> TerminalError
+): Parsed<T> =
     if (inp is T)
         Ok(inp)
     else
-        TypedError(inp, type)
-
-/**
- * @see parseMin
- */
-data class MinError<T : Comparable<T>>(val inp: Any, val min: T) : TerminalError
+        mkErr(inp)
 
 /**
  * Make a `parse` that ensures a [Comparable] is greater than or equal to [min]
@@ -104,11 +103,6 @@ fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
 }
 
 /**
- * @see parseMax
- */
-data class MaxError<T : Comparable<T>>(val inp: Any, val max: T) : TerminalError
-
-/**
  * Make a `parse` that ensures a [Comparable] is less a than or equal to [max]
  * and returns [MaxError] otherwise
  *
@@ -126,12 +120,6 @@ fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
     else
         Ok(inp)
 }
-
-data class BetweenError<T : Comparable<T>>(
-    val inp: Any,
-    val min: T,
-    val max: T
-) : TerminalError
 
 /**
  * Make a `parse` that ensures [Comparable] is between [min] and [max], inclusive,
@@ -152,11 +140,6 @@ fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
             Ok(inp)
     }
 }
-
-/**
- * @see [parseInt]
- */
-data class IntError(val inp: Any) : TerminalError
 
 /**
  * Parse an [Any] into a [Int].
@@ -204,11 +187,6 @@ fun parseInt(inp: Any): Parsed<Int> =
     }
 
 /**
- * @see [parseUInt]
- */
-data class UIntError(val inp: Any) : TerminalError
-
-/**
  * Parse an [Any] into a [UInt].
  * It supports the following types:
  * - [UInt], returns it
@@ -253,11 +231,6 @@ fun parseUInt(inp: Any): Parsed<UInt> =
     }
 
 /**
- * @see [parseLong]
- */
-data class LongError(val inp: Any) : TerminalError
-
-/**
  * Parse an [Any] into a [Long].
  * It supports the following types:
  * - [Long], [Int], [UInt]
@@ -291,13 +264,7 @@ fun parseLong(inp: Any): Parsed<Long> =
                 Ok(inp.toLong())
         else ->
             LongError(inp)
-
     }
-
-/**
- * @see [parseDouble]
- */
-data class DoubleError(val inp: Any) : TerminalError
 
 /**
  * Parse an [Any] into a [Double].

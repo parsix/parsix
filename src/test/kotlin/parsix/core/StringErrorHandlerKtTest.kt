@@ -85,8 +85,8 @@ internal class StringErrorHandlerKtTest {
                 "Invalid value `unknown`, please provide one of: hello, world"
             ),
             Arguments.of(
-                TypedError(Unit, "string"),
-                "Invalid value, it must be string"
+                StringError(Unit),
+                "Invalid value, it must be a string"
             ),
             Arguments.of(
                 MinError(1, 10),

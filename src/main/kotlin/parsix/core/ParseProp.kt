@@ -3,14 +3,6 @@ package parsix.core
 import kotlin.reflect.KProperty1
 
 /**
- * @see parseProp
- */
-data class PropError<K, P>(
-    val prop: KProperty1<K, P>,
-    override val error: ParseError,
-) : CompositeError
-
-/**
  * Make a parser that will extract a prop from an object [I] and [parse] it.
  * In case of failure, the error will be wrapped into a [PropError]
  */

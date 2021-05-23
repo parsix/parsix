@@ -36,9 +36,9 @@ internal class ParseEvalThenKtTest {
     @Test
     fun `it fails when next parse fails`() {
         assertEquals(
-            KeyError("val", TypedError(10, "string")),
+            KeyError("val", StringError(true)),
             this.mkParse().invoke(
-                this.mkMap("str", 10)
+                this.mkMap("str", true)
             )
         )
     }
