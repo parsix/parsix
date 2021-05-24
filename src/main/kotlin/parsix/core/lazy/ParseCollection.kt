@@ -2,8 +2,8 @@ package parsix.core.lazy
 
 import parsix.core.IndexError
 import parsix.core.Parse
-import parsix.core.ParseError
 import parsix.core.Parsed
+import parsix.result.Failure
 import parsix.result.Ok
 import parsix.result.mapError
 
@@ -20,7 +20,7 @@ fun <I, O> lazyManyOf(
             zv.add(iv)
             Ok(zv)
         }.also {
-            if (it is ParseError)
+            if (it is Failure<*>)
                 return@parse it
         }
     }

@@ -4,6 +4,8 @@
  * This generated file contains a sample Kotlin library project to get you started.
  */
 
+val kotlinVersion = "1.5.0"
+
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin.
     kotlin("jvm") version "1.5.0"
@@ -27,6 +29,7 @@ sourceSets {
 dependencies {
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinVersion")
 
     // Use the Kotlin JDK 8 standard library.
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
