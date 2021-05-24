@@ -4,8 +4,6 @@ import parsix.core.CompositeError
 import parsix.core.ParsableEnum
 import parsix.core.Parse
 import parsix.core.ParseError
-import parsix.core.map
-import parsix.core.mapError
 import parsix.core.parseEnum
 import parsix.core.parseInt
 import parsix.core.parseMin

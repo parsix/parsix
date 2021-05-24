@@ -34,6 +34,8 @@ Instead of *just* validating, we should **parse** the input into a shape that ma
 In Parsix, the previous example would become:
 ```kotlin
 import parsix.core.Parse
+import parsix.result.Failure
+import parsix.result.Ok
 
 @JvmInline
 value class Email(val email: String)
@@ -46,7 +48,7 @@ fun storeEmailEndpoint(inp: String) {
         is Ok ->
             storeEmail(parsed.value)
 
-        is ParseError ->
+        is Failure ->
             TODO("handle failure")
     }
 }
@@ -70,8 +72,8 @@ fun <T> handleParsed(parsed: Parsed<T>, happyCase: (T) -> Response): Response =
     when (parsed) {
         is Ok ->
             happyCase(parsed.value)
-        is ParseFailure ->
-            parseFailureToResponse(parsed)
+        is Failure ->
+            makeErrorResponse(parsed.error)
     }
 ```
 
@@ -121,7 +123,7 @@ val parseEmail: Parse<String, Email>
 fun validateEmail(str: String): bool =
     when (parseEmail(str)) {
         is Ok -> true
-        is ParseError -> false
+        is Failure -> false
     }
 ```
 
@@ -134,20 +136,28 @@ fun <I, O> parse(input: I): Parsed<I, O>
 ```
 The `Parse` we used in previous example is just a typealias over it.
 
-### What is Parsed?
-Parsed is a sealed interface, it models our parse result and can only have two shapes:
- * `Ok(value)` models the success case
- * `ParseFailure` another sealed interface, models the failure case
+### What are Result and Parsed?
+Result is a simple sealed interface that models an operation that could fail. It has only two shapes:
+* `Ok(value)` models the success case
+* `Failure(error)` models the failure case
 
-If you are familiar with functional programming, this type is a specialised `Result` (also known as `Either`).
+It is a common type in Functional Programming and is also known as `Either`.
+
+Parsed is a typealias over Result:
+```kotlin
+typealias Parsed<T> = Result<ParseError, T>
+```
+It fixes the error to be a `ParseError`, which will be discussed more in depth in [Handling Errors](#handling-errors).
 
 ### A simple parse
-Given that each business domain is different from one another, Parsix offers only low level parsers and combinators that makes it easy to implement more complex ones.
+Given that each business domain is different from one another, Parsix focus mainly on low level parsers and combinators that makes it easy to implement more complex ones.
 
 Let's say we have `Age` concept and we want to ensure that in a particular flow only adults (Age >= 18) can enter it:
 ```kotlin
 import parsix.core.TerminalError
 import parsix.core.Parsed
+import parsix.result.Failure
+import parsix.result.Ok
 
 @JvmInline
 value class Age(val value: UInt)
@@ -160,7 +170,7 @@ fun parseAdultAge(inp: Age): Parsed<AdultAge> =
     if (inp.value >= 18)
         Ok(AdultAge(inp.value))
     else
-        NotAdultError(inp)
+        Failure(NotAdultError(inp))
 ```
 
 Implementing new parse function is quite simple and straightforward, that's all there is.
@@ -188,10 +198,11 @@ Some may suggest to use `Enum.name` instead of having to extend from a particula
 Let's say in our domain we need to work with Name, it must be a string and it has length between 3 and 255 chars:
 ```kotlin
 import parsix.core.Parsed
-import parsix.core.Ok
 import parsix.core.ParseError
 import parsix.core.TerminalError
 import parsix.core.parseBetween
+import parsix.result.Failure
+import parsix.result.Ok
 
 /** Make it type-safe to use this value after parsing */
 @JvmInline
@@ -208,8 +219,8 @@ fun parseName(inp: String): Parsed<Name> =
         is Ok ->
             Ok(Name(inp))
 
-        is ParseError ->
-            NameError(inp, parsed)
+        is Failure ->
+            Failure(NameError(inp, parsed))
     }
 ```
 That's all you need. We can also write the same using `focusedParse` combinator:
@@ -413,6 +424,8 @@ myHandler(MyTerminalError()) == listOf("Unknown error, something went wrong")
 myHandler(MyCompositeError(RequiredError)) == listOf("Unknown: Required value")
 ```
 
+Working with an open class of errors can be challenging in big projects, therefore we strongly advice to create a sealed interface from which all the others derive. In this way generic error handling will be much easier because the compiler will be able to remind us if we forgot to handle any of them. This is why all errors coming from Parsix implement either `CoreTerminalError` or `CoreCompositeError`.
+
 ## Recommended Style
 When using this library you are free and encouraged to experiment, to come up with your own ways. Nonetheless, we would like to recommend a style that works quite well for us.
 We recommend this style especially if you are working in a large codebase with many contributors.
@@ -440,12 +453,12 @@ fun signupEndpoint(request: Map<String, Any?>): Response {
         is Ok ->
             signup(parsed.value)
             response(HttpStatus.Created)
-        is ParseError ->
-            parseFailureResponse(parsed)
+        is Failure ->
+            makeErrorResponse(parsed.error)
     }
 }
 
-fun parseFailureResponse(err: ParseError): Reponse =
+fun makeErrorResponse(err: ParseError): Reponse =
     TODO("implement error handling")
 ```
 As for the first principle, we are immediately parsing our request and exit immediately with a response error if something went wrong. Due to the shape of Parsed, the compiler is helping us remember to handle the error branch, no other way around it!
@@ -474,7 +487,7 @@ data class Signup private constructor(val email: Email, val password: Password) 
             if (verify == pass.unwrap)
                 Ok(Signup(email, pass))
             else
-                PasswordDoesntMatchError()
+                Failure(PasswordDoesntMatchError())
     }
 }
 ```
@@ -488,7 +501,7 @@ Let's have a look at `Email`:
 package app.domain
 
 @JvmInline
-value class Email private constructor(val unwrap: String) {
+value class Email private constructor(val raw: String) {
     companion object {
         val parse: Parse<String, Email>
             get() = TODO("implement parser")

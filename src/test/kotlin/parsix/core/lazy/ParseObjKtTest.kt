@@ -2,11 +2,12 @@ package parsix.core.lazy
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import parsix.core.Ok
 import parsix.core.PropError
 import parsix.core.curry
 import parsix.core.parseInto
 import parsix.core.succeed
+import parsix.result.Failure
+import parsix.result.Ok
 import parsix.test.TestError
 import parsix.test.neverCalled
 
@@ -28,10 +29,10 @@ internal class ParseObjKtTest {
     @Test
     fun `it short-circuits on first error`() {
         assertEquals(
-            PropError(TestSrc::b, TestError("second")),
+            Failure(PropError(TestSrc::b, TestError("second"))),
             parseInto(TestSrc::class, ::TestDst.curry())
                 .lazyRequired(TestSrc::a, neverCalled())
-                .lazyOptional(TestSrc::b, TestError.of("second"))
+                .lazyOptional(TestSrc::b, TestError.lift("second"))
                 .invoke(TestSrc("ok", "10"))
         )
     }

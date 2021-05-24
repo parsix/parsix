@@ -1,5 +1,11 @@
 package parsix.core
 
+import parsix.result.Failure
+import parsix.result.Ok
+import parsix.result.flatMap
+import parsix.result.map
+import parsix.result.mapError
+
 /**
  * The building block of this library: a simple function that gets a single input
  * and returns a [Parsed]
@@ -20,7 +26,7 @@ inline infix fun <I, T, O> Parse<I, T>.then(
         when (val parsed = this(inp)) {
             is Ok ->
                 parse(parsed.value)
-            is ParseError ->
+            is Failure ->
                 parsed
         }
     }

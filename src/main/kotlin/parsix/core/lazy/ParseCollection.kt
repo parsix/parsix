@@ -1,11 +1,11 @@
 package parsix.core.lazy
 
 import parsix.core.IndexError
-import parsix.core.Ok
 import parsix.core.Parse
 import parsix.core.ParseError
 import parsix.core.Parsed
-import parsix.core.mapError
+import parsix.result.Ok
+import parsix.result.mapError
 
 fun <I, O> lazyManyOf(
     parse: Parse<I, O>

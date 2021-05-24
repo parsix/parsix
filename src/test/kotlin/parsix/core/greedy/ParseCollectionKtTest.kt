@@ -4,8 +4,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import parsix.core.IndexError
 import parsix.core.ManyErrors
-import parsix.core.Ok
 import parsix.core.Parse
+import parsix.result.Failure
+import parsix.result.Ok
 import parsix.test.TestError
 
 internal class ParseCollectionKtTest {
@@ -22,16 +23,18 @@ internal class ParseCollectionKtTest {
     fun `it returns all errors on failure`() {
         val parse: Parse<Int, String> = { inp: Int ->
             if (inp % 2 == 0)
-                TestError("failed ${inp}")
+                TestError.of("failed ${inp}")
             else
                 Ok(inp.toString())
         }
 
         assertEquals(
-            ManyErrors(
-                setOf(
-                    IndexError(1, TestError("failed 2")),
-                    IndexError(3, TestError("failed 4")),
+            Failure(
+                ManyErrors(
+                    setOf(
+                        IndexError(1, TestError("failed 2")),
+                        IndexError(3, TestError("failed 4")),
+                    )
                 )
             ),
             manyOf(parse)

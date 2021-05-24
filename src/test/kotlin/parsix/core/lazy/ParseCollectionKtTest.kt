@@ -3,8 +3,9 @@ package parsix.core.lazy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import parsix.core.IndexError
-import parsix.core.Ok
 import parsix.core.Parse
+import parsix.result.Failure
+import parsix.result.Ok
 import parsix.test.TestError
 
 internal class ParseCollectionKtTest {
@@ -21,13 +22,13 @@ internal class ParseCollectionKtTest {
     fun `it immediately returns error on failure`() {
         val parse: Parse<Int, String> = { inp: Int ->
             if (inp == 2)
-                TestError("failed")
+                TestError.of("failed")
             else
                 Ok(inp.toString())
         }
 
         assertEquals(
-            IndexError(1, TestError("failed")),
+            Failure(IndexError(1, TestError("failed"))),
             lazyManyOf(parse)
                 .invoke(listOf(1, 2, 3))
         )

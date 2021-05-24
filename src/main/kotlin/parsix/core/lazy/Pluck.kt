@@ -1,9 +1,9 @@
 package parsix.core.lazy
 
-import parsix.core.Ok
 import parsix.core.Parse
-import parsix.core.ParseError
 import parsix.core.Parsed
+import parsix.result.Failure
+import parsix.result.Ok
 
 /**
  * This is the building block for complex data structures.
@@ -47,9 +47,9 @@ inline fun <A, B, O> lazyLift2(
             when (val pb = lazyB()) {
                 is Ok ->
                     f(pa.value, pb.value)
-                is ParseError ->
+                is Failure ->
                     pb
             }
-        is ParseError ->
+        is Failure ->
             pa
     }

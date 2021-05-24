@@ -1,5 +1,8 @@
 package parsix.core
 
+import parsix.result.Failure
+import parsix.result.Ok
+
 /**
  * The most basic parse, it will always succeed with [result]
  */
@@ -13,7 +16,7 @@ fun <I, O> succeed(result: O): Parse<I, O> =
 inline fun <I : Any, O> notNullable(crossinline parse: Parse<I, O>): Parse<I?, O> =
     { inp ->
         if (inp == null)
-            RequiredError
+            Failure(RequiredError)
         else
             parse(inp)
     }
@@ -61,7 +64,7 @@ fun parseString(inp: Any): Parsed<String> =
             Ok(inp.toString())
 
         else ->
-            StringError(inp)
+            Failure(StringError(inp))
     }
 
 /**
@@ -81,7 +84,7 @@ inline fun <reified T> parseTyped(
     if (inp is T)
         Ok(inp)
     else
-        mkErr(inp)
+        Failure(mkErr(inp))
 
 /**
  * Make a `parse` that ensures a [Comparable] is greater than or equal to [min]
@@ -97,7 +100,7 @@ inline fun <reified T> parseTyped(
  */
 fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
     if (inp < min)
-        MinError(inp, min)
+        Failure(MinError(inp, min))
     else
         Ok(inp)
 }
@@ -116,7 +119,7 @@ fun <T : Comparable<T>> parseMin(min: T): Parse<T, T> = { inp ->
  */
 fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
     if (inp > max)
-        MaxError(inp, max)
+        Failure(MaxError(inp, max))
     else
         Ok(inp)
 }
@@ -131,10 +134,10 @@ fun <T : Comparable<T>> parseMax(max: T): Parse<T, T> = { inp ->
 fun <T : Comparable<T>> parseBetween(min: T, max: T): Parse<T, T> = { inp ->
     when {
         inp < min ->
-            BetweenError(inp, min, max)
+            Failure(BetweenError(inp, min, max))
 
         inp > max ->
-            BetweenError(inp, min, max)
+            Failure(BetweenError(inp, min, max))
 
         else ->
             Ok(inp)
@@ -158,7 +161,7 @@ fun parseInt(inp: Any): Parsed<Int> =
             try {
                 Ok(inp.toInt())
             } catch (ex: NumberFormatException) {
-                IntError(inp)
+                Failure(IntError(inp))
             }
 
         is Int ->
@@ -166,24 +169,24 @@ fun parseInt(inp: Any): Parsed<Int> =
 
         is UInt ->
             if (inp > Int.MAX_VALUE.toUInt())
-                MaxError(inp, Int.MAX_VALUE)
+                Failure(MaxError(inp, Int.MAX_VALUE))
             else
                 Ok(inp.toInt())
 
         is Long ->
             if (Int.MIN_VALUE > inp || Int.MAX_VALUE < inp)
-                BetweenError(inp, Int.MIN_VALUE, Int.MAX_VALUE)
+                Failure(BetweenError(inp, Int.MIN_VALUE, Int.MAX_VALUE))
             else
                 Ok(inp.toInt())
 
         is Double ->
             if (Int.MIN_VALUE > inp || Int.MAX_VALUE < inp)
-                BetweenError(inp, Int.MIN_VALUE, Int.MAX_VALUE)
+                Failure(BetweenError(inp, Int.MIN_VALUE, Int.MAX_VALUE))
             else
                 Ok(inp.toInt())
 
         else ->
-            IntError(inp)
+            Failure(IntError(inp))
     }
 
 /**
@@ -202,7 +205,7 @@ fun parseUInt(inp: Any): Parsed<UInt> =
             try {
                 Ok(inp.toUInt())
             } catch (ex: NumberFormatException) {
-                UIntError(inp)
+                Failure(UIntError(inp))
             }
 
         is UInt ->
@@ -210,24 +213,24 @@ fun parseUInt(inp: Any): Parsed<UInt> =
 
         is Int ->
             if (inp < 0)
-                MinError(inp, 0)
+                Failure(MinError(inp, 0))
             else
                 Ok(inp.toUInt())
 
         is Long ->
             if (inp < 0 || inp > UInt.MAX_VALUE.toLong())
-                BetweenError(inp, UInt.MIN_VALUE, UInt.MAX_VALUE)
+                Failure(BetweenError(inp, UInt.MIN_VALUE, UInt.MAX_VALUE))
             else
                 Ok(inp.toUInt())
 
         is Double ->
             if (inp < UInt.MIN_VALUE.toDouble() || inp > UInt.MAX_VALUE.toDouble())
-                BetweenError(inp, UInt.MIN_VALUE, UInt.MAX_VALUE)
+                Failure(BetweenError(inp, UInt.MIN_VALUE, UInt.MAX_VALUE))
             else
                 Ok(inp.toUInt())
 
         else ->
-            UIntError(inp)
+            Failure(UIntError(inp))
     }
 
 /**
@@ -245,7 +248,7 @@ fun parseLong(inp: Any): Parsed<Long> =
             try {
                 Ok(inp.toLong())
             } catch (ex: NumberFormatException) {
-                LongError(inp)
+                Failure(LongError(inp))
             }
 
         is Long ->
@@ -259,11 +262,11 @@ fun parseLong(inp: Any): Parsed<Long> =
 
         is Double ->
             if (inp < Long.MIN_VALUE.toDouble() || inp > Long.MAX_VALUE.toDouble())
-                BetweenError(inp, Long.MIN_VALUE, Long.MAX_VALUE)
+                Failure(BetweenError(inp, Long.MIN_VALUE, Long.MAX_VALUE))
             else
                 Ok(inp.toLong())
         else ->
-            LongError(inp)
+            Failure(LongError(inp))
     }
 
 /**
@@ -280,7 +283,7 @@ fun parseDouble(inp: Any): Parsed<Double> =
             try {
                 Ok(inp.toDouble())
             } catch (ex: NumberFormatException) {
-                LongError(inp)
+                Failure(LongError(inp))
             }
 
         is Double ->
@@ -299,5 +302,5 @@ fun parseDouble(inp: Any): Parsed<Double> =
             Ok(inp.toDouble())
 
         else ->
-            DoubleError(inp)
+            Failure(DoubleError(inp))
     }

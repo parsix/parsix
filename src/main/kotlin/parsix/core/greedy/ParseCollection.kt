@@ -1,10 +1,10 @@
 package parsix.core.greedy
 
 import parsix.core.IndexError
-import parsix.core.Ok
 import parsix.core.Parse
 import parsix.core.Parsed
-import parsix.core.mapError
+import parsix.result.Ok
+import parsix.result.mapError
 
 fun <I, O> manyOf(
     parse: Parse<I, O>

@@ -1,5 +1,6 @@
 package parsix.core
 
+import parsix.result.Ok
 import kotlin.reflect.KClass
 
 typealias ParseMap<O> = Parse<Map<String, Any?>, O>
