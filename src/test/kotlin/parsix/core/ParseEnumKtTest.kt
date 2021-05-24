@@ -2,6 +2,8 @@ package parsix.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import parsix.result.Failure
+import parsix.result.Ok
 
 internal class ParseEnumKtTest {
     enum class TestEnum(override val key: String) : ParsableEnum {
@@ -28,7 +30,7 @@ internal class ParseEnumKtTest {
     @Test
     fun `it fails on unknown value`() {
         assertEquals(
-            EnumError("unknown", setOf("one", "two")),
+            Failure(EnumError("unknown", setOf("one", "two"))),
             parseEnum<TestEnum>()("unknown")
         )
     }

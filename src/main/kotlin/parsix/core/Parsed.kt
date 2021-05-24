@@ -1,61 +1,19 @@
 package parsix.core
 
+import parsix.result.Result
+
 /**
  * Model the result of a [Parse]
  *
  * @see Ok
  * @see ParseError
  */
-sealed interface Parsed<out T>
+typealias Parsed<T> = Result<ParseError, T>
 
 /**
- * Transform a successful result into another [Parsed]
+ * Base interface for modeling parse errors
  */
-inline fun <A, B> Parsed<A>.flatMap(
-    crossinline f: (A) -> Parsed<B>
-): Parsed<B> =
-    when (this) {
-        is Ok ->
-            f(this.value)
-        is ParseError ->
-            this
-    }
-
-/**
- * Transform a successful result into something else
- */
-inline fun <A, B> Parsed<A>.map(
-    crossinline f: (A) -> B
-): Parsed<B> =
-    when (this) {
-        is Ok ->
-            Ok(f(this.value))
-        is ParseError ->
-            this
-    }
-
-/**
- * Transform a failure into another failure
- */
-inline fun <T> Parsed<T>.mapError(
-    crossinline f: (ParseError) -> ParseError
-): Parsed<T> =
-    when (this) {
-        is Ok ->
-            this
-        is ParseError ->
-            f(this)
-    }
-
-/**
- * Model the successful case
- */
-data class Ok<T>(val value: T) : Parsed<T>
-
-/**
- * Base class for modeling the failure case
- */
-sealed interface ParseError : Parsed<Nothing>
+sealed interface ParseError
 
 /**
  * This error will be implemented by all the other errors
@@ -70,7 +28,7 @@ interface CompositeError : ParseError {
 }
 
 /**
- * Model a collection of errors.
+ * Models a collection of errors, useful for greedy parsers.
  */
 class ManyErrors(errors: Set<ParseError>) : ParseError {
     private val errors = errors.toMutableSet()

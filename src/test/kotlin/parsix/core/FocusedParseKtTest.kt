@@ -2,6 +2,8 @@ package parsix.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import parsix.result.Failure
+import parsix.result.Ok
 
 internal class FocusedParseKtTest {
     data class EmailUserError(
@@ -20,7 +22,7 @@ internal class FocusedParseKtTest {
     @Test
     fun `it properly maps failure`() {
         assertEquals(
-            EmailUserError("@world.com", RequiredError),
+            Failure(EmailUserError("@world.com", RequiredError)),
             parseEmailUser("@world.com")
         )
     }
@@ -28,7 +30,7 @@ internal class FocusedParseKtTest {
     private fun parseEmailUser(inp: String) =
         focusedParse(
             { it.split('@')[0] },
-            { if (it.length > 1) Ok(it) else RequiredError },
+            { if (it.length > 1) Ok(it) else Failure(RequiredError) },
             { it },
             ::EmailUserError
         )(inp)

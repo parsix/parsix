@@ -1,10 +1,10 @@
 package parsix.core.greedy
 
-import parsix.core.Ok
 import parsix.core.Parse
-import parsix.core.ParseError
 import parsix.core.Parsed
 import parsix.core.combineErrors
+import parsix.result.Failure
+import parsix.result.Ok
 
 /**
  * This is the building block for complex data structures.
@@ -38,14 +38,14 @@ inline fun <A, B, O> lift2(
             when (pb) {
                 is Ok ->
                     f(pa.value, pb.value)
-                is ParseError ->
+                is Failure ->
                     pb
             }
-        is ParseError ->
+        is Failure ->
             when (pb) {
                 is Ok ->
                     pa
-                is ParseError ->
-                    combineErrors(pa, pb)
+                is Failure ->
+                    Failure(combineErrors(pa.error, pb.error))
             }
     }

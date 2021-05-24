@@ -4,13 +4,14 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import parsix.core.KeyError
 import parsix.core.ManyErrors
-import parsix.core.Ok
 import parsix.core.RequiredError
 import parsix.core.curry
 import parsix.core.parseInt
 import parsix.core.parseInto
 import parsix.core.parseString
 import parsix.core.succeed
+import parsix.result.Failure
+import parsix.result.Ok
 import parsix.test.TestError
 import parsix.test.neverCalled
 
@@ -37,7 +38,7 @@ internal class ParseMapKtTest {
     @Test
     fun `required fields must be present in the input map`() {
         assertEquals(
-            KeyError("1st", RequiredError),
+            Failure(KeyError("1st", RequiredError)),
             parseInto(::TestData.curry())
                 .required("1st", neverCalled())
                 .optional("snd", succeed(10))
@@ -59,15 +60,17 @@ internal class ParseMapKtTest {
     @Test
     fun `it greedily collect errors`() {
         assertEquals(
-            ManyErrors(
-                setOf(
-                    KeyError("1st", TestError("fail first")),
-                    KeyError("snd", TestError("fail second")),
+            Failure(
+                ManyErrors(
+                    setOf(
+                        KeyError("1st", TestError("fail first")),
+                        KeyError("snd", TestError("fail second")),
+                    )
                 )
             ),
             parseInto(::TestData.curry())
-                .required("1st", TestError.of("fail first"))
-                .optional("snd", TestError.of("fail second"))
+                .required("1st", TestError.lift("fail first"))
+                .optional("snd", TestError.lift("fail second"))
                 .invoke(
                     mapOf(
                         "1st" to "broken",

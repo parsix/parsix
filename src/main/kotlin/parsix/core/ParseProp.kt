@@ -1,5 +1,6 @@
 package parsix.core
 
+import parsix.result.mapError
 import kotlin.reflect.KProperty1
 
 /**

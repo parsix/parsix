@@ -3,13 +3,14 @@ package parsix.core.lazy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import parsix.core.KeyError
-import parsix.core.Ok
 import parsix.core.RequiredError
 import parsix.core.curry
 import parsix.core.parseInt
 import parsix.core.parseInto
 import parsix.core.parseString
 import parsix.core.succeed
+import parsix.result.Failure
+import parsix.result.Ok
 import parsix.test.TestError
 import parsix.test.neverCalled
 
@@ -35,7 +36,7 @@ internal class ParseMapKtTest {
     @Test
     fun `required fields must be present in the input map`() {
         assertEquals(
-            KeyError("1st", RequiredError),
+            Failure(KeyError("1st", RequiredError)),
             parseInto(::TestData.curry())
                 .lazyRequired("1st", neverCalled())
                 .lazyOptional("snd", succeed(10))
@@ -57,10 +58,10 @@ internal class ParseMapKtTest {
     @Test
     fun `it short-circuits on first error`() {
         assertEquals(
-            KeyError("snd", TestError("fail fast")),
+            Failure(KeyError("snd", TestError("fail fast"))),
             parseInto(::TestData.curry())
                 .lazyRequired("1st", neverCalled())
-                .lazyOptional("snd", TestError.of("fail fast"))
+                .lazyOptional("snd", TestError.lift("fail fast"))
                 .invoke(
                     mapOf(
                         "1st" to "broken",

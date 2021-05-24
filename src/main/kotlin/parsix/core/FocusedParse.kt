@@ -1,5 +1,8 @@
 package parsix.core
 
+import parsix.result.Failure
+import parsix.result.Ok
+
 /**
  * Focus on an aspect of the input and parse it.
  * In case of failure, it will be mapped accordingly to [mapErr].
@@ -15,7 +18,7 @@ inline fun <I, T, O> focusedParse(
     when (val parsed = parse(focus(inp))) {
         is Ok ->
             Ok(mapOk(inp))
-        is ParseError ->
-            mapErr(inp, parsed)
+        is Failure ->
+            Failure(mapErr(inp, parsed.error))
     }
 }

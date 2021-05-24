@@ -3,11 +3,12 @@ package parsix.core.greedy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import parsix.core.ManyErrors
-import parsix.core.Ok
 import parsix.core.PropError
 import parsix.core.curry
 import parsix.core.parseInto
 import parsix.core.succeed
+import parsix.result.Failure
+import parsix.result.Ok
 import parsix.test.TestError
 
 internal class ParseObjKtTest {
@@ -28,15 +29,17 @@ internal class ParseObjKtTest {
     @Test
     fun `it greedily collects errors`() {
         assertEquals(
-            ManyErrors(
-                setOf(
-                    PropError(TestSrc::a, TestError("first")),
-                    PropError(TestSrc::b, TestError("second")),
+            Failure(
+                ManyErrors(
+                    setOf(
+                        PropError(TestSrc::a, TestError("first")),
+                        PropError(TestSrc::b, TestError("second")),
+                    )
                 )
             ),
             parseInto(TestSrc::class, ::TestDst.curry())
-                .required(TestSrc::a, TestError.of("first"))
-                .optional(TestSrc::b, TestError.of("second"))
+                .required(TestSrc::a, TestError.lift("first"))
+                .optional(TestSrc::b, TestError.lift("second"))
                 .invoke(TestSrc("ok", "10"))
         )
     }

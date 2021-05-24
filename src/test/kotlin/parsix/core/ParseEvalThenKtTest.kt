@@ -2,6 +2,8 @@ package parsix.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import parsix.result.Failure
+import parsix.result.Ok
 
 internal class ParseEvalThenKtTest {
     sealed class Attribute
@@ -36,7 +38,7 @@ internal class ParseEvalThenKtTest {
     @Test
     fun `it fails when next parse fails`() {
         assertEquals(
-            KeyError("val", StringError(true)),
+            Failure(KeyError("val", StringError(true))),
             this.mkParse().invoke(
                 this.mkMap("str", true)
             )

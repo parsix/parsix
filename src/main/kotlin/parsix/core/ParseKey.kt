@@ -1,5 +1,7 @@
 package parsix.core
 
+import parsix.result.mapError
+
 /**
  * Make a parser that will extract a key from a [Map] and [parse] it.
  * In case of failure, the error will be wrapped into a [KeyError]

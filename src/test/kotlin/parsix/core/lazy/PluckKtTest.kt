@@ -3,11 +3,12 @@ package parsix.core.lazy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
-import parsix.core.Ok
 import parsix.core.Parse
 import parsix.core.curry
 import parsix.core.parseInto
 import parsix.core.succeed
+import parsix.result.Failure
+import parsix.result.Ok
 import parsix.test.TestError
 
 internal class PluckKtTest {
@@ -27,12 +28,13 @@ internal class PluckKtTest {
     @Test
     fun `it short-circuits on first error, unwrapping from last one`() {
         val failParse: Parse<Any, String> =
-            TestError.of("failure")
+            TestError.lift("failure")
+
         val crashParse: Parse<Any, Int> =
             { _ -> fail("crashed") }
 
         assertEquals(
-            TestError("failure"),
+            Failure(TestError("failure")),
             parseInto(::TestData.curry())
                 .lazyPluck(crashParse)
                 .lazyPluck(failParse)
