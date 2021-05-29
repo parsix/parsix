@@ -18,6 +18,12 @@ typealias CoParseMap<O> =
     CoParse<Map<String, Any?>, O>
 
 /**
+ * Transform any [Parse] into a [CoParse]
+ */
+fun <I, O> Parse<I, O>.co(): CoParse<I, O> =
+    { inp -> this(inp) }
+
+/**
  * Combine two parsers, [parse] will use the parsed value of [this].
  *
  * For example, to convert from an [Any] into an [Enum] we could:
