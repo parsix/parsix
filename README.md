@@ -3,6 +3,8 @@ High level parsing to ensure your input is in the right shape and satisfies all 
 
 It is highly inspired by the work of Alexis King "[Parse, don't validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/)", we recommend reading it even if you are unfamiliar with Haskell.
 
+We have also published a new article specific to Kotlin: [Parse, don't validate in Kotlin](https://pelligra-s.medium.com/parse-dont-validate-in-kotlin-afbac505a04f)
+
 ## What's the problem?
 Any non-trivial program always needs to validate external inputs. In Kotlin ecosystem it's often a mix of deserializing a stream into an object and then validate it satisfies the more complex business constraints.
 Most programs will perform validation in a form like:
