@@ -1,9 +1,7 @@
 package parsix.async.lazy
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import parsix.async.CoParse
 import parsix.core.IndexError
 import parsix.core.ParseError
@@ -24,26 +22,16 @@ data class ParseCancellationException(val failure: Failure<ParseError>) :
 suspend fun <I, O> lazyAsyncManyOf(
     parse: CoParse<I, O>
 ): CoParse<Iterable<I>, List<O>> = { inp ->
-    try {
-        coroutineScope {
-            inp
-                .mapIndexed { i, item ->
-                    async {
-                        when (val parsed = parse(item)) {
-                            is Failure ->
-                                throw ParseCancellationException(
-                                    Failure(IndexError(i, parsed.error))
-                                )
-
-                            is Ok ->
-                                parsed.value
-                        }
-                    }
-                }
-                .awaitAll()
-                .let(::Ok)
-        }
-    } catch (ex: ParseCancellationException) {
-        ex.failure
+    lazyAsyncScope {
+        inp
+            .mapIndexed { i, item ->
+                lazyAsync(
+                    { parse(item) },
+                    { IndexError(i, it) },
+                    { it.value },
+                )
+            }
+            .awaitAll()
+            .let(::Ok)
     }
 }

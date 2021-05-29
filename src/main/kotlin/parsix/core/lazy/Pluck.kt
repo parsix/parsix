@@ -18,7 +18,7 @@ import parsix.fp.result.Ok
  *
  * Please note that the *last* defined pluck will be executed *first*!
  * ```
- * parseMap(::MyData.curry())
+ * parseInto(::MyData.curry())
  *    .lazyPluck(heavyParse)
  *    .lazyPluck(quickParse)
  * ```
