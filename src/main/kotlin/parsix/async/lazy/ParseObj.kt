@@ -14,21 +14,21 @@ import kotlin.reflect.KProperty1
  * Commonly used together with [coParseInto][parsix.async.coParseInto]
  *
  * @see parsix.async.coParseInto
- * @see lazyAsyncPluck
+ * @see lazyCoPluck
  * @see coParseProp
  */
 fun <I, P, A, B> CoParse<I, (A) -> B>.lazyPluckProp(
     prop: KProperty1<I, P>,
     parse: CoParse<P, A>
 ): CoParse<I, B> =
-    this.lazyAsyncPluck(coParseProp(prop, parse))
+    this.lazyCoPluck(coParseProp(prop, parse))
 
 @JvmName("flatPluckProp")
 fun <I, P, A, B> CoParse<I, (A) -> Parsed<B>>.lazyPluckProp(
     prop: KProperty1<I, P>,
     parse: CoParse<P, A>
 ): CoParse<I, B> =
-    this.lazyAsyncPluck(coParseProp(prop, parse))
+    this.lazyCoPluck(coParseProp(prop, parse))
 
 /**
  * When [prop] is nullable, it will refuse it an fail with [RequiredError][parsix.core.RequiredError],

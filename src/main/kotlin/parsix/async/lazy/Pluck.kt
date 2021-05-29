@@ -19,12 +19,29 @@ import parsix.fp.result.Ok
  * Please note that the *last* defined pluck will be executed *first*!
  * ```
  * coParseInto(::MyData.curry())
- *    .lazyAsyncPluck(heavyParse)
- *    .lazyAsyncPluck(quickParse)
+ *    .lazyAsyncPluck(parseAfter)
+ *    .lazyAsyncPluck(parseFirst)
  * ```
- * In the case above, `quickParse` will run before `heavyParse`.
+ * In the case above, `parseFirst` will run before `parseAfter`.
  *
  * @see parsix.async.coParseInto
+ */
+fun <I, A, B> CoParse<I, (A) -> B>.lazyCoPluck(parse: CoParse<I, A>): CoParse<I, B> =
+    { inp ->
+        lazyLift2(parse(inp), { this(inp) }) { a, f -> Ok(f(a)) }
+    }
+
+@JvmName("lazyCoFlatPluck")
+fun <I, A, B> CoParse<I, (A) -> Parsed<B>>.lazyCoPluck(parse: CoParse<I, A>): CoParse<I, B> =
+    { inp ->
+        lazyLift2(parse(inp), { this(inp) }) { a, f -> f(a) }
+    }
+
+/**
+ * Similar to [lazyCoPluck], however all calls to [lazyAsyncPluck] will run asynchronously
+ * using [kotlinx.coroutines.async]. In case of failure, all deferred will be cancelled.
+ *
+ * @see lazyCoPluck
  */
 fun <I, A, B> CoParse<I, (A) -> B>.lazyAsyncPluck(parse: CoParse<I, A>): CoParse<I, B> =
     { inp ->
