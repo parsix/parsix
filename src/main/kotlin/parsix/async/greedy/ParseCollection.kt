@@ -7,9 +7,20 @@ import parsix.async.CoParse
 import parsix.core.IndexError
 import parsix.core.Parsed
 import parsix.core.greedy.lift2
-import parsix.result.Ok
-import parsix.result.mapError
+import parsix.fp.result.Ok
+import parsix.fp.result.mapError
 
+/**
+ * Create a new [CoParse] capable of parsing and running effects over a homogenous
+ * collection of items.
+ * All items will be parsed asynchronously, one coroutine per element will be dispatched.
+ *
+ * This greedy version will always run over all elements, hence it is only recommended
+ * to use it for quick [parse].
+ *
+ * In case you would like to quickly bail out from extensive computations, please have a
+ * look at [lazyAsyncManyOf][parsix.async.lazy.lazyAsyncManyOf]
+ */
 suspend fun <I, O> asyncManyOf(
     parse: CoParse<I, O>
 ): CoParse<Iterable<I>, List<O>> = { inp ->

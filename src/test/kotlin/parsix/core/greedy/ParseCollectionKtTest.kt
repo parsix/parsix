@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test
 import parsix.core.IndexError
 import parsix.core.ManyErrors
 import parsix.core.Parse
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 import parsix.test.TestError
 
 internal class ParseCollectionKtTest {

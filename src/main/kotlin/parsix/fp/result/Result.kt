@@ -1,4 +1,4 @@
-package parsix.result
+package parsix.fp.result
 
 sealed interface Result<out E, out T>
 data class Ok<T>(val value: T) : Result<Nothing, T>
@@ -41,4 +41,16 @@ inline fun <A, B, T> Result<A, T>.mapError(
             this
         is Failure ->
             Failure(f(this.error))
+    }
+
+inline fun <E, T> Result<E, T>.onError(
+    f: (Failure<E>) -> Unit
+): Result<E, T> =
+    when (this) {
+        is Ok ->
+            this
+        is Failure -> {
+            f(this)
+            this
+        }
     }

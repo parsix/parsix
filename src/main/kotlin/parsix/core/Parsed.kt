@@ -1,6 +1,6 @@
 package parsix.core
 
-import parsix.result.Result
+import parsix.fp.result.Result
 
 /**
  * Model the result of a [Parse]

@@ -2,8 +2,8 @@ package parsix.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 internal class ParseEnumKtTest {
     enum class TestEnum(override val key: String) : ParsableEnum {

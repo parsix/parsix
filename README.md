@@ -34,8 +34,8 @@ Instead of *just* validating, we should **parse** the input into a shape that ma
 In Parsix, the previous example would become:
 ```kotlin
 import parsix.core.Parse
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 @JvmInline
 value class Email(val email: String)
@@ -156,8 +156,8 @@ Let's say we have `Age` concept and we want to ensure that in a particular flow 
 ```kotlin
 import parsix.core.TerminalError
 import parsix.core.Parsed
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 @JvmInline
 value class Age(val value: UInt)
@@ -201,8 +201,8 @@ import parsix.core.Parsed
 import parsix.core.ParseError
 import parsix.core.TerminalError
 import parsix.core.parseBetween
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 /** Make it type-safe to use this value after parsing */
 @JvmInline

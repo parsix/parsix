@@ -10,8 +10,8 @@ import parsix.core.parseInt
 import parsix.core.parseInto
 import parsix.core.parseString
 import parsix.core.succeed
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 import parsix.test.TestError
 import parsix.test.neverCalled
 
