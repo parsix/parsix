@@ -2,7 +2,7 @@ package parsix.test
 
 import org.junit.jupiter.api.Assertions.fail
 import parsix.core.Parse
-import parsix.core.Parsed
+import parsix.core.ParseError
 import parsix.core.TerminalError
 import parsix.fp.result.Failure
 
@@ -14,7 +14,7 @@ data class TestError(val error: String) : TerminalError {
         fun <I, O> lift(err: String): Parse<I, O> =
             { _ -> this.of(err) }
 
-        fun <O> of(err: String = "failed"): Parsed<O> =
+        fun of(err: String = "failed"): Failure<ParseError> =
             Failure(TestError(err))
     }
 }
