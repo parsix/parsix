@@ -19,19 +19,17 @@ internal suspend fun <T> lazyAsyncScope(
     }
 
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun <A> CoroutineScope.lazyAsync(
-    noinline parse: suspend CoroutineScope.() -> Parsed<A>
-): Deferred<Ok<A>> = lazyAsync(
+internal inline fun <T> CoroutineScope.lazyAsync(
+    noinline parse: suspend CoroutineScope.() -> Parsed<T>
+): Deferred<T> = lazyAsync(
     parse,
-    { it },
     { it }
 )
 
-internal inline fun <A, B> CoroutineScope.lazyAsync(
-    noinline parse: suspend CoroutineScope.() -> Parsed<A>,
+internal inline fun <T> CoroutineScope.lazyAsync(
+    noinline parse: suspend CoroutineScope.() -> Parsed<T>,
     crossinline mapFailure: (ParseError) -> ParseError,
-    crossinline mapOk: (Ok<A>) -> B,
-): Deferred<B> =
+): Deferred<T> =
     async {
         when (val parsed = parse()) {
             is Failure ->
@@ -40,6 +38,6 @@ internal inline fun <A, B> CoroutineScope.lazyAsync(
                 )
 
             is Ok ->
-                mapOk(parsed)
+                parsed.value
         }
     }

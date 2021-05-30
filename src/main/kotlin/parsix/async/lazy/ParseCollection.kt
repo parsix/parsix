@@ -28,7 +28,6 @@ suspend fun <I, O> lazyAsyncManyOf(
                 lazyAsync(
                     { parse(item) },
                     { IndexError(i, it) },
-                    { it.value },
                 )
             }
             .awaitAll()

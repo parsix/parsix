@@ -1,5 +1,7 @@
 package parsix.async.lazy
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitAll
 import parsix.async.CoParse
 import parsix.core.Parsed
 import parsix.core.lazy.lazyLift2
@@ -45,21 +47,34 @@ fun <I, A, B> CoParse<I, (A) -> Parsed<B>>.lazyCoPluck(parse: CoParse<I, A>): Co
  */
 fun <I, A, B> CoParse<I, (A) -> B>.lazyAsyncPluck(parse: CoParse<I, A>): CoParse<I, B> =
     { inp ->
-        lazyAsyncScope {
-            val pa = lazyAsync { parse(inp) }
-            val pf = lazyAsync { this@lazyAsyncPluck(inp) }
-
-            lazyLift2(pa.await(), { pf.await() }) { a, f -> Ok(f(a)) }
-        }
+        runBothAsync(
+            { parse(inp) },
+            { this@lazyAsyncPluck(inp) },
+            { a, f -> Ok(f(a)) }
+        )
     }
 
 @JvmName("lazyAsyncFlatPluck")
 fun <I, A, B> CoParse<I, (A) -> Parsed<B>>.lazyAsyncPluck(parse: CoParse<I, A>): CoParse<I, B> =
     { inp ->
-        lazyAsyncScope {
-            val pa = lazyAsync { parse(inp) }
-            val pf = lazyAsync { this@lazyAsyncPluck(inp) }
+        runBothAsync(
+            { parse(inp) },
+            { this@lazyAsyncPluck(inp) },
+            { a, f -> f(a) }
+        )
+    }
 
-            lazyLift2(pa.await(), { pf.await() }) { a, f -> f(a) }
-        }
+internal suspend inline fun <A, B, R> runBothAsync(
+    noinline a: suspend CoroutineScope.() -> Parsed<A>,
+    noinline b: suspend CoroutineScope.() -> Parsed<B>,
+    crossinline f: (A, B) -> Parsed<R>
+): Parsed<R> =
+    lazyAsyncScope {
+        val da = lazyAsync(a)
+        val db = lazyAsync(b)
+
+        // allows the whole chain to fail fast
+        awaitAll(da, db)
+
+        f(da.await(), db.await())
     }

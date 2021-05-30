@@ -14,7 +14,7 @@ data class TestError(val error: String) : TerminalError {
         fun <I, O> lift(err: String): Parse<I, O> =
             { _ -> this.of(err) }
 
-        fun <O> of(err: String): Parsed<O> =
+        fun <O> of(err: String = "failed"): Parsed<O> =
             Failure(TestError(err))
     }
 }
