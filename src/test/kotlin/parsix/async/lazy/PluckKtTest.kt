@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import parsix.async.brokenIn
 import parsix.async.coParseInto
-import parsix.async.coSucceed
 import parsix.async.failureIn
 import parsix.async.succeedIn
 import parsix.core.curry
@@ -25,23 +24,21 @@ internal class PluckKtTest {
             TestError.of(),
             parse(mapOf())
         )
-        assertEquals(
-            10,
-            currentTime
-        )
+        assertEquals(10, currentTime)
     }
 
     @Test
     fun `lazyAsyncPluck returns result when all succeeds`() = runBlockingTest {
         val parse =
             coParseInto({ a: Int, b: Int -> a - b }.curry())
-                .lazyAsyncPluck(coSucceed(3))
-                .lazyAsyncPluck(coSucceed(2))
+                .lazyAsyncPluck(succeedIn(ms = 50, value = 3))
+                .lazyAsyncPluck(succeedIn(ms = 100, value = 2))
 
         assertEquals(
             Ok(1),
             parse(mapOf())
         )
+        assertEquals(100, currentTime)
     }
 
     @Test
@@ -56,22 +53,21 @@ internal class PluckKtTest {
             TestError.of(),
             parse(mapOf())
         )
-        assertEquals(
-            110,
-            currentTime
-        )
+        assertEquals(110, currentTime)
     }
 
     @Test
-    fun `lazyCoPluck returns result when all succeeds`() = runBlockingTest {
-        val parse =
-            coParseInto({ a: Int, b: Int -> a + b }.curry())
-                .lazyCoPluck(coSucceed(1))
-                .lazyCoPluck(coSucceed(2))
+    fun `lazyCoPluck sequentially run all parsers and returns result when all succeeds`() =
+        runBlockingTest {
+            val parse =
+                coParseInto({ a: Int, b: Int -> a + b }.curry())
+                    .lazyCoPluck(succeedIn(ms = 10, value = 1))
+                    .lazyCoPluck(succeedIn(ms = 5, value = 2))
 
-        assertEquals(
-            Ok(3),
-            parse(mapOf())
-        )
-    }
+            assertEquals(
+                Ok(3),
+                parse(mapOf())
+            )
+            assertEquals(15, currentTime)
+        }
 }

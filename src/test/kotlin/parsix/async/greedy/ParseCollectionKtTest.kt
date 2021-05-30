@@ -23,6 +23,7 @@ internal class ParseCollectionKtTest {
             asyncManyOf(parse)
                 .invoke(listOf(3, 2, 1))
         )
+        assertEquals(3, currentTime)
     }
 
     @Test
@@ -46,5 +47,6 @@ internal class ParseCollectionKtTest {
             asyncManyOf(parse)
                 .invoke(listOf(3, 2, 1))
         )
+        assertEquals(3, currentTime)
     }
 }
