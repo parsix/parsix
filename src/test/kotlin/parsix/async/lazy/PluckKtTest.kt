@@ -17,13 +17,17 @@ internal class PluckKtTest {
     fun `lazyAsyncPluck fails immediately`() = runBlockingTest {
         val parse =
             coParseInto({ a: Int, b: Int, c: Int -> a + b + c }.curry())
-                .lazyAsyncPluck(broken())
-                .lazyAsyncPluck(failure())
-                .lazyAsyncPluck(broken())
+                .lazyAsyncPluck(brokenIn(1000))
+                .lazyAsyncPluck(failureIn10ms())
+                .lazyAsyncPluck(brokenIn(2000))
 
         assertEquals(
             TestError.of<Int>(),
             parse(mapOf())
+        )
+        assertEquals(
+            10,
+            currentTime
         )
     }
 
@@ -44,13 +48,17 @@ internal class PluckKtTest {
     fun `lazyCoPluck fails on first error, starting from last call`() = runBlockingTest {
         val parse =
             coParseInto({ a: Int, b: Int, c: Int -> a + b + c }.curry())
-                .lazyCoPluck(broken())
-                .lazyCoPluck(failure())
-                .lazyCoPluck(coSucceed(3))
+                .lazyCoPluck(brokenIn(1000))
+                .lazyCoPluck(failureIn10ms())
+                .lazyCoPluck(succeedIn100msWith(3))
 
         assertEquals(
             TestError.of<Int>(),
             parse(mapOf())
+        )
+        assertEquals(
+            110,
+            currentTime
         )
     }
 
@@ -67,15 +75,21 @@ internal class PluckKtTest {
         )
     }
 
-    private fun <T> broken(): CoParse<Any, T> =
+    private fun <T> brokenIn(ms: Long): CoParse<Any, T> =
         { _ ->
-            delay(1000)
+            delay(ms)
             fail("this should not run")
         }
 
-    private fun <T> failure(): CoParse<Any, T> =
+    private fun <T> failureIn10ms(): CoParse<Any, T> =
         { _ ->
             delay(10)
             TestError.of()
+        }
+
+    private fun <T> succeedIn100msWith(value: T): CoParse<Any, T> =
+        { _ ->
+            delay(100)
+            Ok(value)
         }
 }
