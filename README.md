@@ -3,6 +3,38 @@ High level parsing to ensure your input is in the right shape and satisfies all 
 
 It is highly inspired by the work of Alexis King "[Parse, don't validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/)", we recommend reading it even if you are unfamiliar with Haskell.
 
+## Using in your projects
+
+This library is available in maven central and we follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+In particular, be aware that we are still in development phase and the API isn't stable, as represented by the `0.x.x` version.
+
+### Gradle
+
+Update your `build.gradle.kts` to look like:
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("io.github.parsix:parsix:0.1.0")
+}
+```
+
+### Maven
+
+Add a new dependency in your `<dependencies>` block:
+
+```xml
+<dependency>
+    <groupId>io.github.parsix</groupId>
+    <artifactId>parsix</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
 ## What's the problem?
 Any non-trivial program always needs to validate external inputs. In Kotlin ecosystem it's often a mix of deserializing a stream into an object and then validate it satisfies the more complex business constraints.
 Most programs will perform validation in a form like:
