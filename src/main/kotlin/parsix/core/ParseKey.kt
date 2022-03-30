@@ -1,6 +1,6 @@
 package parsix.core
 
-import parsix.result.mapError
+import parsix.fp.result.mapError
 
 /**
  * Make a parser that will extract a key from a [Map] and [parse] it.

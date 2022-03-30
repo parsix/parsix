@@ -1,10 +1,10 @@
 package parsix.core
 
-import parsix.result.Failure
-import parsix.result.Ok
-import parsix.result.flatMap
-import parsix.result.map
-import parsix.result.mapError
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
+import parsix.fp.result.flatMap
+import parsix.fp.result.map
+import parsix.fp.result.mapError
 
 /**
  * The building block of this library: a simple function that gets a single input

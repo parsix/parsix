@@ -2,8 +2,8 @@ package parsix.core.lazy
 
 import parsix.core.Parse
 import parsix.core.Parsed
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 /**
  * This is the building block for complex data structures.
@@ -18,7 +18,7 @@ import parsix.result.Ok
  *
  * Please note that the *last* defined pluck will be executed *first*!
  * ```
- * parseMap(::MyData.curry())
+ * parseInto(::MyData.curry())
  *    .lazyPluck(heavyParse)
  *    .lazyPluck(quickParse)
  * ```

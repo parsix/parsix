@@ -3,8 +3,8 @@ package parsix.core.greedy
 import parsix.core.IndexError
 import parsix.core.Parse
 import parsix.core.Parsed
-import parsix.result.Ok
-import parsix.result.mapError
+import parsix.fp.result.Ok
+import parsix.fp.result.mapError
 
 fun <I, O> manyOf(
     parse: Parse<I, O>

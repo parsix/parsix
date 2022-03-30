@@ -3,8 +3,8 @@ package parsix.core.greedy
 import parsix.core.Parse
 import parsix.core.Parsed
 import parsix.core.combineErrors
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 /**
  * This is the building block for complex data structures.

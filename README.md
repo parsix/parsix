@@ -3,8 +3,6 @@ High level parsing to ensure your input is in the right shape and satisfies all 
 
 It is highly inspired by the work of Alexis King "[Parse, don't validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/)", we recommend reading it even if you are unfamiliar with Haskell.
 
-We have also published a new article specific to Kotlin: [Parse, don't validate in Kotlin](https://pelligra-s.medium.com/parse-dont-validate-in-kotlin-afbac505a04f)
-
 ## What's the problem?
 Any non-trivial program always needs to validate external inputs. In Kotlin ecosystem it's often a mix of deserializing a stream into an object and then validate it satisfies the more complex business constraints.
 Most programs will perform validation in a form like:
@@ -36,8 +34,8 @@ Instead of *just* validating, we should **parse** the input into a shape that ma
 In Parsix, the previous example would become:
 ```kotlin
 import parsix.core.Parse
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 @JvmInline
 value class Email(val email: String)
@@ -158,8 +156,8 @@ Let's say we have `Age` concept and we want to ensure that in a particular flow 
 ```kotlin
 import parsix.core.TerminalError
 import parsix.core.Parsed
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 @JvmInline
 value class Age(val value: UInt)
@@ -203,8 +201,8 @@ import parsix.core.Parsed
 import parsix.core.ParseError
 import parsix.core.TerminalError
 import parsix.core.parseBetween
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 /** Make it type-safe to use this value after parsing */
 @JvmInline

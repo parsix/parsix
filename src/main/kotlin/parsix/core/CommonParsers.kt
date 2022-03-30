@@ -1,7 +1,7 @@
 package parsix.core
 
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 
 /**
  * The most basic parse, it will always succeed with [result]

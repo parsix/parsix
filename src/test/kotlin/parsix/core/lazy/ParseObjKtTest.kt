@@ -6,8 +6,8 @@ import parsix.core.PropError
 import parsix.core.curry
 import parsix.core.parseInto
 import parsix.core.succeed
-import parsix.result.Failure
-import parsix.result.Ok
+import parsix.fp.result.Failure
+import parsix.fp.result.Ok
 import parsix.test.TestError
 import parsix.test.neverCalled
 
